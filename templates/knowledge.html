@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}知识库 - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">知识库</h1>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">全部文章 ({{ articles|length }})</span>
+        <div style="display: flex; gap: 8px;">
+            <a href="/crawl" class="btn btn-primary">+ 手动补爬</a>
+        </div>
+    </div>
+
+    {% if articles %}
+    <div class="article-list">
+        {% for article in articles %}
+        <div class="article-item">
+            <a href="/article/{{ article.id }}" class="article-title">{{ article.title }}</a>
+            <p class="article-summary">{{ article.summary[:200] if article.summary else '暂无摘要' }}...</p>
+            <div class="article-meta">
+                <span class="badge badge-source">{{ article.source }}</span>
+                <span class="badge badge-l{{ article.level }}">L{{ article.level }}</span>
+                <span class="card-meta">{{ article.created_at.strftime('%Y-%m-%d') }}</span>
+                {% if article.keywords %}
+                    {% for kw in article.keywords[:3] %}
+                    <span class="badge badge-source">{{ kw }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>知识库为空</h3>
+        <p>还没有文章被收录，开始第一次抓取吧</p>
+        <br>
+        <a href="/crawl" class="btn btn-primary">手动补爬</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

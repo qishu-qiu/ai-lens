@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}自我更新 - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">自我更新历史</h1>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">系统进化记录</span>
+        <span class="card-meta">宪法规则: 单文件≤500行 | 函数≤50行 | 必须测试</span>
+    </div>
+
+    {% if updates %}
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for update in updates %}
+        <div class="article-item">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                <span class="article-title" style="margin: 0;">{{ update.description }}</span>
+                <span class="badge
+                    {% if update.status == 'executed' %}badge-l1
+                    {% elif update.status == 'pending_review' %}badge-l2
+                    {% elif update.status == 'rejected' %}badge-l3
+                    {% else %}badge-source{% endif %}">
+                    {{ update.status }}
+                </span>
+            </div>
+            <p style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">{{ update.reason }}</p>
+            <div class="article-meta">
+                <span class="badge badge-source">{{ update.update_type }}</span>
+                <span class="card-meta">{{ update.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                {% if update.executed_at %}
+                <span class="card-meta">执行: {{ update.executed_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>暂无更新记录</h3>
+        <p>系统会自动扫描新内容并触发自我更新</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">防臃肿宪法</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+        <div style="background: var(--bg); padding: 16px; border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">≤500</div>
+            <div style="color: var(--muted); font-size: 14px;">单文件最大行数</div>
+        </div>
+        <div style="background: var(--bg); padding: 16px; border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">≤50</div>
+            <div style="color: var(--muted); font-size: 14px;">单函数最大行数</div>
+        </div>
+        <div style="background: var(--bg); padding: 16px; border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">≤20</div>
+            <div style="color: var(--muted); font-size: 14px;">最大模块数</div>
+        </div>
+        <div style="background: var(--bg); padding: 16px; border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--good); margin-bottom: 4px;">必须</div>
+            <div style="color: var(--muted); font-size: 14px;">每次更新必须有测试</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

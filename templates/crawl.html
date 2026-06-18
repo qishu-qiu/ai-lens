@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}手动补爬 - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">手动补爬</h1>
+
+{% if success %}
+<div class="alert alert-success">
+    {{ success }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-error">
+    {{ error }}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">提交文章URL</span>
+    </div>
+    <form method="post" action="/crawl">
+        <div class="form-group">
+            <label for="url">文章链接</label>
+            <input type="url" id="url" name="url" placeholder="https://arxiv.org/abs/..." required>
+        </div>
+        <button type="submit" class="btn btn-primary">开始爬取</button>
+    </form>
+</div>
+
+{% if article %}
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">爬取结果</span>
+    </div>
+    <div class="article-item">
+        <a href="/article/{{ article.id }}" class="article-title">{{ article.title }}</a>
+        <p class="article-summary">{{ article.summary[:200] if article.summary else '暂无摘要' }}...</p>
+        <div class="article-meta">
+            <span class="badge badge-source">{{ article.source }}</span>
+            <span class="badge badge-l{{ article.level }}">L{{ article.level }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">支持的来源</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div style="background: var(--bg); padding: 12px; border-radius: 8px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">arXiv</div>
+            <div style="font-size: 13px; color: var(--muted);">AI/ML论文RSS</div>
+        </div>
+        <div style="background: var(--bg); padding: 12px; border-radius: 8px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">任意网页</div>
+            <div style="font-size: 13px; color: var(--muted);">粘贴URL自动解析</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

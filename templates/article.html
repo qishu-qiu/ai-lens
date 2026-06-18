@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title[:50] }}... - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h1 style="font-size: 24px; margin-bottom: 8px;">{{ article.title }}</h1>
+            <div class="article-meta">
+                <span class="badge badge-source">{{ article.source }}</span>
+                <span class="badge badge-l{{ article.level }}">L{{ article.level }}</span>
+                <span class="card-meta">{{ article.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if article.authors %}
+    <p style="color: var(--muted); margin-bottom: 16px;">作者: {{ article.authors }}</p>
+    {% endif %}
+
+    <div style="background: var(--bg); border-radius: 8px; padding: 20px; margin-bottom: 16px;">
+        <h3 style="font-size: 14px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">摘要</h3>
+        <p style="line-height: 1.7;">{{ article.summary or '暂无摘要' }}</p>
+    </div>
+
+    {% if article.keywords %}
+    <div style="margin-bottom: 16px;">
+        <h3 style="font-size: 14px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">关键词</h3>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            {% for kw in article.keywords %}
+            <span class="badge badge-source">{{ kw }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 12px;">
+        <a href="{{ article.url }}" target="_blank" class="btn btn-primary">阅读原文</a>
+        <a href="/knowledge" class="btn btn-secondary">返回知识库</a>
+    </div>
+</div>
+{% endblock %}

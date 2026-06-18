@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}搜索 - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">搜索知识库</h1>
+
+<div class="card">
+    <form method="get" action="/search">
+        <div class="form-group">
+            <label for="q">关键词</label>
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="q" name="q" value="{{ query }}" placeholder="输入关键词搜索..." style="flex: 1;">
+                <button type="submit" class="btn btn-primary">搜索</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if query %}
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">搜索结果 ({{ articles|length }})</span>
+    </div>
+
+    {% if articles %}
+    <div class="article-list">
+        {% for article in articles %}
+        <div class="article-item">
+            <a href="/article/{{ article.id }}" class="article-title">{{ article.title }}</a>
+            <p class="article-summary">{{ article.summary[:200] if article.summary else '暂无摘要' }}...</p>
+            <div class="article-meta">
+                <span class="badge badge-source">{{ article.source }}</span>
+                <span class="badge badge-l{{ article.level }}">L{{ article.level }}</span>
+                <span class="card-meta">{{ article.created_at.strftime('%Y-%m-%d') }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>未找到相关文章</h3>
+        <p>尝试使用其他关键词，或手动添加文章</p>
+        <br>
+        <a href="/crawl" class="btn btn-primary">手动补爬</a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

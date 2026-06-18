@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}每日简报 - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">每日简报</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ briefing.total_articles }}</div>
+        <div class="stat-label">知识库总量</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ briefing.new_articles }}</div>
+        <div class="stat-label">今日新增</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ briefing.updated_articles }}</div>
+        <div class="stat-label">今日更新</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">今日抓取 ({{ briefing.date }})</span>
+        <a href="/knowledge" class="btn btn-secondary">查看全部</a>
+    </div>
+
+    {% if briefing.articles %}
+    <div class="article-list">
+        {% for article in briefing.articles %}
+        <div class="article-item">
+            <a href="/article/{{ article.id }}" class="article-title">{{ article.title }}</a>
+            <p class="article-summary">{{ article.summary[:200] if article.summary else '暂无摘要' }}...</p>
+            <div class="article-meta">
+                <span class="badge badge-source">{{ article.source }}</span>
+                <span class="badge badge-l{{ article.level }}">L{{ article.level }}</span>
+                {% if article.keywords %}
+                    {% for kw in article.keywords[:3] %}
+                    <span class="badge badge-source">{{ kw }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>今日暂无新文章</h3>
+        <p>系统会自动抓取最新AI资讯，请稍后再来查看</p>
+        <br>
+        <a href="/crawl" class="btn btn-primary">手动补爬</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

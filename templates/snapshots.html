@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}版本迭代 - AI-Self-Evolution{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 24px;">知识库版本迭代</h1>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">版本历史</span>
+        <span class="card-meta">每次自动更新后生成新版本快照</span>
+    </div>
+
+    {% if snapshots %}
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for snapshot in snapshots %}
+        <div class="article-item">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span class="article-title" style="margin: 0;">{{ snapshot.version }}</span>
+                    <p style="color: var(--muted); font-size: 14px; margin-top: 4px;">
+                        文章数: {{ snapshot.article_count }}
+                        {% if snapshot.metadata_json %}
+                        | 更新: {{ snapshot.metadata_json.get('updates', 0) }} 条
+                        {% endif %}
+                    </p>
+                </div>
+                <span class="card-meta">{{ snapshot.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>暂无版本快照</h3>
+        <p>系统会在每次自动更新后生成版本快照</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">版本演进可视化</span>
+    </div>
+    <div style="background: var(--bg); border-radius: 8px; padding: 40px; text-align: center;">
+        {% if snapshots %}
+        <div style="display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            {% for snapshot in snapshots %}
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                    <span style="font-weight: 700; color: white;">{{ snapshot.version }}</span>
+                </div>
+                <div style="font-size: 12px; color: var(--muted);">{{ snapshot.article_count }}篇</div>
+            </div>
+            {% if not loop.last %}
+            <div style="color: var(--accent); font-size: 24px;">→</div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--muted);">版本数据不足，无法生成演进图</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

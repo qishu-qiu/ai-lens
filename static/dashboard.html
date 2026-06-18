@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-Self-Evolution — AI前沿，翻译成人话</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1a2236;
+  --ink: #e2e8f0;
+  --muted: #64748b;
+  --rule: #1e293b;
+  --accent: #00d4aa;
+  --accent2: #3b82f6;
+  --accent3: #8b5cf6;
+  --good: #22c55e;
+  --warn: #f59e0b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border-bottom: 1px solid var(--rule);
+  padding: 20px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.header h1 { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; }
+.header .tagline { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.header-stats { display: flex; gap: 20px; }
+.header-stat { text-align: center; }
+.header-stat .num { font-size: 22px; font-weight: 700; color: var(--accent); font-family: 'Space Mono', monospace; }
+.header-stat .label { font-size: 11px; color: var(--muted); }
+
+/* ===== Search ===== */
+.search-bar {
+  max-width: 1400px;
+  margin: 16px auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 12px;
+}
+.search-bar input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+}
+.search-bar input:focus { border-color: var(--accent); }
+.search-bar input::placeholder { color: var(--muted); }
+.search-bar button {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}
+.search-bar button:hover { opacity: 0.9; }
+
+/* ===== Layout ===== */
+.main { max-width: 1400px; margin: 0 auto; padding: 0 24px 40px; display: flex; gap: 20px; }
+
+/* Sidebar */
+.sidebar { width: 240px; flex-shrink: 0; }
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-left: 8px;
+  border-left: 2px solid var(--accent);
+}
+.topic-list { list-style: none; }
+.topic-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+.topic-item:hover { background: var(--bg2); border-color: var(--rule); }
+.topic-item.active { background: rgba(0,212,170,0.1); border-color: var(--accent); }
+.topic-item .name { font-size: 13px; font-weight: 500; }
+.topic-item .count {
+  font-size: 11px;
+  background: var(--bg3);
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--muted);
+}
+.topic-item.active .count { background: var(--accent); color: var(--bg); }
+
+/* ===== Content Area ===== */
+.content-area { flex: 1; min-width: 0; }
+
+/* ===== Three-Tab Navigation ===== */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 4px;
+}
+.tab-nav button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.tab-nav button:hover { color: var(--ink); background: var(--bg3); }
+.tab-nav button.active { background: var(--accent); color: var(--bg); }
+
+/* ===== View Containers ===== */
+.view-container { display: none; }
+.view-container.active { display: block; }
+
+/* ===== Weekly Briefing View ===== */
+.briefing-header {
+  margin-bottom: 24px;
+}
+.briefing-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.briefing-header .date-range {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
+.briefing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.briefing-card {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 20px 24px;
+  border-left: 4px solid var(--accent);
+  transition: border-color 0.2s, transform 0.15s;
+  cursor: default;
+}
+.briefing-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.briefing-card:nth-child(2) { border-left-color: var(--accent2); }
+.briefing-card:nth-child(3) { border-left-color: var(--accent3); }
+.briefing-card:nth-child(4) { border-left-color: var(--warn); }
+.briefing-card:nth-child(5) { border-left-color: var(--good); }
+.briefing-card:nth-child(6) { border-left-color: var(--accent); }
+.briefing-card:nth-child(7) { border-left-color: var(--accent2); }
+.briefing-card:nth-child(8) { border-left-color: var(--accent3); }
+.briefing-card:nth-child(9) { border-left-color: var(--warn); }
+.briefing-card:nth-child(10) { border-left-color: var(--good); }
+.briefing-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.briefing-explanation {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.8;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+.briefing-concept-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.briefing-concept-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: rgba(0,212,170,0.12);
+  color: var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid rgba(0,212,170,0.2);
+}
+.briefing-concept-tag:hover {
+  background: rgba(0,212,170,0.25);
+}
+.briefing-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+.briefing-meta a {
+  color: var(--accent2);
+  text-decoration: none;
+}
+.briefing-meta a:hover { text-decoration: underline; }
+
+/* ===== Concept Dictionary View ===== */
+.concept-dict-header {
+  margin-bottom: 24px;
+}
+.concept-dict-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.concept-dict-header .subtitle {
+  font-size: 13px;
+  color: var(--muted);
+}
+.concept-dict-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.concept-dict-card {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.concept-dict-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.concept-dict-card .cd-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.concept-dict-one-liner {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.7;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+.concept-dict-card .cd-expand {
+  font-size: 12px;
+  color: var(--accent2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.concept-dict-card .cd-expand::after {
+  content: '\25BC';
+  font-size: 8px;
+  transition: transform 0.2s;
+}
+.concept-dict-card.expanded .cd-expand::after {
+  transform: rotate(180deg);
+}
+.concept-dict-detail {
+  display: none;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+.concept-dict-card.expanded .concept-dict-detail {
+  display: block;
+}
+.concept-dict-detail .cd-section {
+  margin-bottom: 12px;
+}
+.concept-dict-detail .cd-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.concept-dict-detail .cd-scenarios li {
+  margin-bottom: 4px;
+  padding-left: 16px;
+  position: relative;
+}
+.concept-dict-detail .cd-scenarios li::before {
+  content: '\2022';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* ===== Deep Explore View (original matrix + timeline) ===== */
+.explore-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.explore-title { font-size: 16px; font-weight: 700; }
+.explore-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.view-toggle { display: flex; gap: 4px; }
+.view-toggle button {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.view-toggle button.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* Matrix Grid */
+.matrix-grid {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.matrix-row { display: flex; border-bottom: 1px solid var(--rule); }
+.matrix-row:last-child { border-bottom: none; }
+.matrix-cell {
+  flex: 1;
+  min-width: 80px;
+  padding: 16px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-right: 1px solid var(--rule);
+  position: relative;
+}
+.matrix-cell:last-child { border-right: none; }
+.matrix-cell:hover { transform: scale(1.05); z-index: 10; }
+.matrix-cell .count { font-size: 20px; font-weight: 700; font-family: 'Space Mono', monospace; }
+.matrix-cell .year-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.matrix-cell.empty { opacity: 0.3; cursor: default; }
+.matrix-cell.empty:hover { transform: none; }
+
+.matrix-cell.c1 { background: rgba(0,212,170,0.08); }
+.matrix-cell.c2 { background: rgba(0,212,170,0.15); }
+.matrix-cell.c3 { background: rgba(0,212,170,0.25); }
+.matrix-cell.c4 { background: rgba(0,212,170,0.35); }
+.matrix-cell.c5 { background: rgba(0,212,170,0.5); }
+.matrix-cell.c1 .count { color: rgba(0,212,170,0.5); }
+.matrix-cell.c2 .count { color: rgba(0,212,170,0.7); }
+.matrix-cell.c3 .count { color: var(--accent); }
+.matrix-cell.c4 .count { color: #00f0c0; }
+.matrix-cell.c5 .count { color: #fff; text-shadow: 0 0 10px var(--accent); }
+
+.matrix-row-label {
+  width: 140px;
+  flex-shrink: 0;
+  padding: 16px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg3);
+  border-right: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+}
+.matrix-header-row { display: flex; background: var(--bg3); border-bottom: 1px solid var(--rule); }
+.matrix-header-cell {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  border-right: 1px solid var(--rule);
+}
+.matrix-header-cell:last-child { border-right: none; }
+.matrix-corner {
+  width: 140px;
+  flex-shrink: 0;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  border-right: 1px solid var(--rule);
+}
+
+/* ===== Topic Detail Panel ===== */
+.detail-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 520px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--bg2);
+  border-left: 1px solid var(--rule);
+  z-index: 200;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+.detail-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--rule);
+  position: sticky;
+  top: 0;
+  background: var(--bg2);
+  z-index: 10;
+}
+.detail-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+}
+.detail-close:hover { color: var(--ink); border-color: var(--accent); }
+.detail-title { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+.detail-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.detail-meta { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+.detail-body { padding: 20px 24px; }
+.detail-section { margin-bottom: 28px; }
+.detail-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-section-title::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* Concept card */
+.concept-card {
+  background: var(--bg3);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+.concept-card p { margin-bottom: 8px; }
+.concept-card p:last-child { margin-bottom: 0; }
+.concept-card strong { color: var(--accent); }
+
+/* Article list in detail */
+.article-list { list-style: none; }
+.article-item {
+  background: var(--bg3);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.article-item:hover { border-color: var(--accent); }
+.article-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.article-item-title .relevance {
+  font-size: 10px;
+  background: rgba(0,212,170,0.15);
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.article-item-summary {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.article-item-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.article-item-meta a {
+  color: var(--accent2);
+  text-decoration: none;
+}
+.article-item-meta a:hover { text-decoration: underline; }
+
+/* Timeline in detail */
+.timeline-list { list-style: none; }
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.timeline-item:last-child { border-bottom: none; }
+.timeline-date {
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+}
+.timeline-content { font-size: 13px; color: var(--ink); }
+.timeline-content .event { font-weight: 500; }
+.timeline-content .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 150;
+}
+
+/* ===== Concept Section in Sidebar ===== */
+.concept-section { margin-bottom: 20px; }
+.concept-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  user-select: none;
+}
+.concept-toggle:hover { border-color: var(--accent); }
+.concept-toggle .arrow {
+  font-size: 10px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+.concept-toggle .arrow.open { transform: rotate(90deg); }
+.concept-list {
+  list-style: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.concept-list.open { max-height: 2000px; }
+.concept-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+.concept-item:hover { background: var(--bg2); border-color: var(--rule); }
+.concept-item .name { font-size: 13px; font-weight: 500; }
+.concept-one-liner { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.concept-status {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.concept-status-active { background: rgba(34,197,94,0.15); color: var(--good); }
+.concept-status-absorbed { background: rgba(245,158,11,0.15); color: var(--warn); }
+.concept-status-archived { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+/* Concept detail in panel */
+.concept-detail-name { font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+.concept-detail-liner { font-size: 14px; color: var(--ink); margin-bottom: 12px; font-style: italic; }
+.concept-detail-desc { font-size: 13px; color: var(--ink); line-height: 1.8; margin-bottom: 16px; }
+.concept-detail-scenarios { font-size: 13px; color: var(--ink); line-height: 1.8; }
+.concept-detail-scenarios li { margin-bottom: 6px; }
+.concept-evolution {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.concept-evolution .evo-node {
+  padding: 6px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  color: var(--ink);
+}
+.concept-evolution .evo-node.current {
+  border-color: var(--accent);
+  background: rgba(0,212,170,0.1);
+  color: var(--accent);
+  font-weight: 600;
+}
+.concept-evolution .evo-arrow { color: var(--muted); font-size: 16px; }
+.concept-related-topics {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.concept-related-topics .topic-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: rgba(59,130,246,0.15);
+  color: var(--accent2);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.concept-related-topics .topic-tag:hover { background: rgba(59,130,246,0.3); }
+
+/* Concept summary in topic detail */
+.concept-summary-card {
+  background: var(--bg3);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.concept-summary-card:hover { border-color: var(--accent); }
+.concept-summary-card .cs-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.concept-summary-card .cs-liner {
+  font-size: 12px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.concept-summary-card .cs-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .main { flex-direction: column; }
+  .sidebar { width: 100%; }
+  .topic-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .topic-item { flex: 1; min-width: 140px; }
+  .concept-dict-grid { grid-template-columns: 1fr; }
+  .matrix-row-label { width: 100px; font-size: 11px; }
+  .matrix-corner { width: 100px; }
+  .detail-panel { width: 100%; max-width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .header-stats { display: none; }
+  .matrix-cell { padding: 10px 4px; min-width: 50px; }
+  .matrix-cell .count { font-size: 14px; }
+  .matrix-row-label { width: 80px; padding: 10px 6px; font-size: 10px; }
+  .tab-nav button { font-size: 12px; padding: 8px 10px; }
+  .briefing-title { font-size: 15px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>AI-Self-Evolution</h1>
+      <div class="tagline">AI前沿，翻译成人话</div>
+    </div>
+    <div class="header-stats">
+      <div class="header-stat">
+        <div class="num" id="stat-total">155</div>
+        <div class="label">知识总量</div>
+      </div>
+      <div class="header-stat">
+        <div class="num" id="stat-topics">8</div>
+        <div class="label">主题数</div>
+      </div>
+      <div class="header-stat">
+        <div class="num" id="stat-sources">30+</div>
+        <div class="label">信息源</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search -->
+<div class="search-bar">
+  <input type="text" id="search-input" placeholder="搜索主题、论文、关键词...">
+  <button onclick="doSearch()">搜索</button>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">研究主题</div>
+      <ul class="topic-list" id="topic-list">
+        <!-- Filled by JS -->
+      </ul>
+    </div>
+    <div class="sidebar-section concept-section">
+      <div class="concept-toggle" onclick="toggleConceptList()">
+        <span>概念词条</span>
+        <span class="arrow" id="concept-arrow">&#9654;</span>
+      </div>
+      <ul class="concept-list" id="concept-list">
+        <!-- Filled by JS -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content-area">
+    <!-- Three-Tab Navigation -->
+    <div class="tab-nav" id="tab-nav">
+      <button class="active" onclick="switchView('briefing', this)">每周简报</button>
+      <button onclick="switchView('concepts', this)">概念词典</button>
+      <button onclick="switchView('explore', this)">深度探索</button>
+    </div>
+
+    <!-- View 1: Weekly Briefing -->
+    <div class="view-container active" id="view-briefing">
+      <div class="briefing-header">
+        <h2>本周AI前沿简报</h2>
+        <div class="date-range" id="briefing-date-range"></div>
+      </div>
+      <div class="briefing-grid" id="briefing-grid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- View 2: Concept Dictionary -->
+    <div class="view-container" id="view-concepts">
+      <div class="concept-dict-header">
+        <h2>概念词典</h2>
+        <div class="subtitle">8个热门AI概念，一句话说人话</div>
+      </div>
+      <div class="concept-dict-grid" id="concept-dict-grid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- View 3: Deep Explore (original matrix + timeline) -->
+    <div class="view-container" id="view-explore">
+      <div class="explore-header">
+        <div>
+          <div class="explore-title">AI 前沿知识时间线矩阵</div>
+          <div class="explore-subtitle">纵轴：研究主题 | 横轴：年份 | 颜色深浅：文章数量</div>
+        </div>
+        <div class="view-toggle" id="explore-toggle">
+          <button class="active" onclick="switchExploreView('matrix', this)">矩阵</button>
+          <button onclick="switchExploreView('timeline', this)">时间线</button>
+        </div>
+      </div>
+      <div class="matrix-grid" id="matrix-grid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="overlay" id="overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-header">
+    <button class="detail-close" onclick="closeDetail()">&times;</button>
+    <div class="detail-title" id="detail-title">主题名称</div>
+    <div class="detail-desc" id="detail-desc">主题描述</div>
+    <div class="detail-meta">
+      <span id="detail-count">0 篇论文</span>
+      <span id="detail-range">2022 - 2026</span>
+    </div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-section" id="section-topic-concept">
+      <div class="detail-section-title">核心概念</div>
+      <div class="concept-card" id="detail-concept"></div>
+    </div>
+    <div class="detail-section" id="section-related-concepts">
+      <div class="detail-section-title">关联概念</div>
+      <div id="detail-related-concepts"></div>
+    </div>
+    <div class="detail-section" id="section-concept-detail" style="display:none;">
+      <div class="detail-section-title">概念详情</div>
+      <div id="detail-concept-full"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">时间线</div>
+      <ul class="timeline-list" id="detail-timeline"></ul>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">相关论文</div>
+      <ul class="article-list" id="detail-articles"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const KNOWLEDGE_BASE = [
+  { title: 'World model maker Odyssey nabs 1.45B valuation backed by Amazon and other big names', summary: '本文报道了世界模型初创公司Odyssey获得Amazon等巨头投资，估值达14.5亿美元。研究聚焦于超越大语言模型（LLMs）的世界模型技术，旨在构建更高级的AI认知能力。核心贡献在于验证了世界模型作为下一代AI关键方向的潜力，并确立了Odyssey在该领域的领先地位。结论表明，随着资本与行业关注度的集中，世界模型正成为继LLMs之后AI发展的新焦点，具有巨大的商业与技术前景。', url: 'https://techcrunch.com/2026/06/17/world-model-maker-odyssey-nabs-1-45b-valuation-backed-by-amazon-and-other-big-names/', source: 'techcrunch_ai', level: 1, keywords: ["world", "odyssey", "maker", "nabs", "valuation"], date: '2026-06-17', authors: 'Julie Bort', topics: ["大模型算法与优化"] },
+  { title: 'Only 16 percent of Americans think AI will have a positive impact on society, a new study shows', summary: '研究问题：公众对人工智能社会影响的认知与华尔街乐观态度存在显著反差。核心方法：基于皮尤研究中心（Pew Research）的最新调查数据，分析美国民众对AI行业前景的态度分布。主要结论：尽管资本市场看好AI，但仅有16%的美国民众认为AI将对社会产生积极影响，显示出公众对该技术的普遍悲观情绪，揭示了产业预期与社会感知之间的巨大鸿沟。', url: 'https://techcrunch.com/2026/06/17/only-16-percent-of-americans-think-ai-will-have-a-positive-impact-on-society-a-new-study-shows/', source: 'techcrunch_ai', level: 1, keywords: ["americans", "shows", "only", "percent", "think"], date: '2026-06-17', authors: 'Lucas Ropek', topics: ["AI安全与治理"] },
+  { title: 'Google bets on Gemini to reinvent the smart home speaker', summary: '针对智能音箱交互僵化痛点，Google推出搭载Gemini的新一代Home Speaker。核心方法是以生成式AI重构交互范式，将传统刚性指令转化为自然多轮对话。主要结论表明，Gemini显著提升了语音助手的理解力与灵活性，有望通过更拟人化的体验重塑智能家居入口，验证了生成式AI在垂直硬件场景中的落地价值。', url: 'https://techcrunch.com/2026/06/17/google-bets-on-gemini-to-reinvent-the-smart-home-speaker/', source: 'techcrunch_ai', level: 1, keywords: ["google", "speaker", "gemini", "smart", "home"], date: '2026-06-17', authors: 'Sarah Perez', topics: ["AI应用生态与工具"] },
+  { title: 'The slowtech revolution is here to kill your phone addiction and rescue your attention span', summary: '针对智能手机成瘾及注意力碎片化问题，本文提出“慢科技”（Slowtech）革命理念。核心方法是通过设计低刺激、非即时反馈的数字交互模式，重构用户与设备的连接方式，旨在帮助用户夺回时间与注意力的控制权。主要结论表明，该技术范式能有效缓解数字依赖，提升专注力，契合用户对自主掌控生活的深层需求，为改善人机关系提供了新的设计方向与实践路径。', url: 'https://techcrunch.com/2026/06/17/the-slowtech-revolution-is-here-to-kill-your-phone-addiction-and-rescue-your-attention-span/', source: 'techcrunch_ai', level: 1, keywords: ["your", "attention", "slowtech", "revolution", "here"], date: '2026-06-17', authors: 'Amanda Silberling', topics: ["AI安全与治理"] },
+  { title: 'Collecting robot training data is dirty, unglamorous work. Some AI labs are already paying XDOF to do it.', summary: '针对具身智能（Physical AI）面临的数据瓶颈，本研究聚焦于解决机器人训练数据收集成本高、质量低的问题。核心方法是通过支付每自由度（XDOF）费用，激励高质量物理数据的规模化采集。主要结论指出，若要让物理AI达到大语言模型的水平，必须优先攻克数据难题，而建立基于XDOF的经济激励机制已成为头部AI实验室的关键策略，旨在通过市场化手段提升数据获取效率与规模。', url: 'https://techcrunch.com/2026/06/17/collecting-robot-training-data-is-dirty-unglamorous-work-some-ai-labs-are-already-paying-xdof-to-do-it/', source: 'techcrunch_ai', level: 1, keywords: ["data", "collecting", "robot", "training", "dirty"], date: '2026-06-17', authors: 'Tim Fernholz', topics: ["具身智能与机器人"] },
+  { title: 'Pramaana Labs raises 27M seed round from Khosla Ventures to bring formal verification to AI', summary: '针对法律、药物发现等高容错率极低领域，Pramaana Labs致力于将形式化验证引入AI系统，解决模型可靠性与错误成本高昂的痛点。其核心方法是通过形式化验证技术确保AI输出的确定性与正确性。主要结论表明，在关键垂直领域，结合形式化验证能显著提升AI系统的可信度与安全性，满足对高可靠性有严苛要求的业务场景需求。', url: 'https://techcrunch.com/2026/06/17/pramaana-labs-raises-27-million-seed-round-from-khosla-ventures-to-bring-formal-verification-to-ai/', source: 'techcrunch_ai', level: 1, keywords: ["pramaana", "labs", "raises", "seed", "round"], date: '2026-06-17', authors: 'Russell Brandom', topics: ["AI应用生态与工具"] },
+  { title: '刚刚北京建了一座AI工厂目标10万P算力日产10万亿Token', summary: '计划1000倍综合降本', url: 'https://www.qbitai.com/2026/06/436456.html', source: 'qbitai', level: 1, keywords: [], date: '2026-06-17', authors: '十三', topics: ["AI应用生态与工具"] },
+  { title: 'AI转型最大的门槛不是技术是人', summary: '不主动改变就只能等着被改变', url: 'https://www.qbitai.com/2026/06/436435.html', source: 'qbitai', level: 1, keywords: [], date: '2026-06-17', authors: '克雷西', topics: ["AI安全与治理"] },
+  { title: '星海图创始人高继扬具身智能三层技术路线没有捷径可走', summary: '针对具身智能落地难题，星海图提出无捷径的三层技术路线。核心方法为投入巨资构建高质量数据闭环，以解决机器人泛化能力不足的关键瓶颈。主要结论指出，通过“砸钱喂数据”夯实底层数据基础，是突破当前技术局限、实现具身智能规模化应用的必经之路，强调了数据质量与规模在技术演进中的决定性作用。', url: 'https://www.qbitai.com/2026/06/436223.html', source: 'qbitai', level: 1, keywords: [], date: '2026-06-17', authors: '田, 晏林', topics: ["具身智能与机器人"] },
+  { title: '九章云极发布AI工厂战略 定义智能规模化新基建', summary: '', url: 'https://www.qbitai.com/2026/06/436224.html', source: 'qbitai', level: 1, keywords: [], date: '2026-06-17', authors: '量子位的朋友们', topics: ["AI应用生态与工具"] },
+  { title: '算苗3D TokenPU正式流片 引领国产AI云端大算力芯片再升级', summary: '算苗科技推出3D TokenPU芯片并实现正式流片，旨在解决国产AI云端大算力瓶颈。该芯片采用3D堆叠技术，通过优化Token处理单元架构，显著提升并行计算效率与能效比。核心突破在于重构数据流路径，降低通信延迟，增强大规模模型推理性能。这一成果标志着国产AI芯片在先进封装与专用加速领域取得实质性进展，为云端大模型训练与推理提供了高性能、低成本的自主可控硬件支撑，推动产业生态升级。', url: 'https://www.qbitai.com/2026/06/436213.html', source: 'qbitai', level: 1, keywords: [], date: '2026-06-17', authors: '量子位的朋友们', topics: ["AI应用生态与工具"] },
+  { title: 'A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry', summary: '本研究解决药物化学中关键合成反应优化的难题。核心方法为构建近自主AI化学家，集成GPT-5.4模型与自动化实验平台，实现从假设生成到实验执行的闭环迭代。主要结论显示，该AI系统成功显著提升了目标反应的效率与产率，验证了大语言模型在复杂化学探索中的自主决策能力，为加速药物研发流程提供了新范式。', url: 'https://openai.com/index/ai-chemist-improves-reaction', source: 'openai', level: 1, keywords: ["near", "autonomous", "chemist", "reaction", "medicinal"], date: '2026-06-17', authors: '', topics: ["垂直领域应用"] },
+  { title: 'Fast Nonparametric Conditional Independence Testing via Two-Stage Regression', summary: '针对约束型因果发现中条件独立性检验速度与校准的矛盾，提出BLITZ方法。该方法采用两阶段回归策略：先通过低阶多项式回归消除对条件集的广义平滑依赖，再利用浅层树回归对非线性特征残差化，最终基于残差协方差构建统计量。理论证明该设计降低了树模型的复杂度，有效抑制偏差并避免过拟合。实验表明，BLITZ在保持极速的同时实现了优于现有方法的零分布校准，显著提升了因果图结构恢复的可靠性与方向准确性。', url: 'https://arxiv.org/abs/2606.18011', source: 'arxiv', level: 1, keywords: ["conditional", "independence", "nonparametric", "causal", "discovery"], date: '2026-06-17', authors: 'Eric V. Strobl', topics: ["大模型算法与优化"] },
+  { title: 'Differential Privacy of Gaussian Process Posterior Sampling', summary: '针对高斯过程（GP）后验采样发布的隐私保护问题，本文提出利用其内在随机性实现差分隐私（DP），而非依赖外部噪声。通过推导Ren yi-DP界限，揭示了有效岭正则化对控制均值泄露和协方差泄露的关键作用。实验验证了成员推断攻击与理论预测的一致性，并证明在噪声观测下，兼容隐私的正则化能以较小效用损失保留决策价值。此外，可通过添加校准GP噪声进一步增强隐私保障。', url: 'https://arxiv.org/abs/2606.17995', source: 'arxiv', level: 1, keywords: ["posterior", "privacy", "sampling", "sample", "leakage"], date: '2026-06-17', authors: 'Tomasz Maciazek', topics: ["AI安全与治理"] },
+  { title: 'Geometrical fairness in graph neural networks', summary: '针对图神经网络扩散模型中潜在的公平性偏差问题，本研究提出一种基于拉普拉斯算子修正的公平性感知扩散框架。通过引入子空间投影、频谱调整及频域滤波等变换，有效抑制数据中的偏见成分。理论分析揭示了该方法的平滑特性与公平性机制。实验表明，该方法在合成及真实数据集上，能以极低的计算开销显著提升公平性指标，同时保持具有竞争力的预测性能。', url: 'https://arxiv.org/abs/2606.17684', source: 'arxiv', level: 1, keywords: ["fairness", "graph", "diffusion", "neural", "performance"], date: '2026-06-17', authors: 'Arturo P\'erez-Peralta, Sandra Ben\'itez-Pe\~na, Blas Kolic, Rosa E. Lillo', topics: ["AI安全与治理"] },
+  { title: 'A Bayesian Boolean Matrix Factorization with Application to Copy Number Analysis in Cancer', summary: '针对现有布尔矩阵分解（BooMF）缺乏不确定性量化及易陷局部最优的问题，提出贝叶斯布尔矩阵分解（BBMF）。该方法构建共轭生成模型，引入稀疏先验并支持吉布斯采样，在保持布尔约束的同时实现可解释的潜在因子与置信度评估。在多发性骨髓瘤拷贝数变异分析中，BBMF有效识别出连接患者亚群与染色体臂扩增的bicliques结构，揭示了肿瘤异质性的离散潜在模式，证明了其在复杂二进制数据建模中的优势。', url: 'https://arxiv.org/abs/2606.17491', source: 'arxiv', level: 1, keywords: ["boolean", "matrix", "factorization", "binary", "data"], date: '2026-06-17', authors: 'Adolphus Wagala, Mehmet Samur, Giovanni Parmigiani', topics: ["大模型算法与优化"] },
+  { title: 'Bounded Difference Concentration for Infinitely Exchangeable Sequences with Applications to AI Benchmark Uncertainty', summary: '针对无限可交换序列的函数集中性问题，本文提出基于德·菲内蒂（de Finetti）导向测度的分解方法，将偏差拆分为条件采样波动与潜在混合波动。通过证明零和线性对比中混合项的精确抵消，建立了紧致的Hoeffding型界。该理论为AI基准测试（如MMLU）提供了分布无关的不确定性量化框架，支持从随机子集高效、低成本地估计全量准确率，兼具分层模型约束与统计保证。', url: 'https://arxiv.org/abs/2606.17426', source: 'arxiv', level: 1, keywords: ["concentration", "exchangeable", "mixture", "difference", "uncertainty"], date: '2026-06-17', authors: 'Fangyuan Lin, Spencer Frei, Victor H. de la Pena', topics: ["AI安全与治理"] },
+  { title: 'Tight L_infty Sample Complexity for Low-Degree and Sparse Boolean Polynomials', summary: '针对有界黑盒函数优化中多项式代理模型的学习问题，研究聚焦于确保优化安全性的均匀L_infty误差保证。通过引入辅助范数克服传统傅里叶分析局限，本文刻画了次高斯噪声下两类多项式的极小极大样本复杂度：对于n变量d次多项式，复杂度为nd^1；对于s稀疏傅里叶-沃尔什多项式，复杂度为ns^2。结果揭示了噪声导致额外因子是自适应学习器固有的，提供了学习优化安全多项式代理模型的紧确样本复杂度界定。', url: 'https://arxiv.org/abs/2606.17319', source: 'arxiv', level: 1, keywords: ["sample", "complexity", "polynomials", "uniform", "guarantees"], date: '2026-06-17', authors: 'Jasper van Doornmalen, Mathieu Molina, Victor Verdugo, Jos\'e Verschae', topics: ["垂直领域应用"] },
+  { title: 'Another Look at Log-PCA for Probability Measures: A Dynamical Formulation and Statistical Convergence', summary: '针对Wasserstein几何下随机概率测度的主成分分析问题，本文提出Log-PCA的动力学变分解释，并构建可微的Wasserstein切向PCA（WT-PCA）。该方法通过协方差算子捕捉加权测度在Wasserstein空间中的局部主测地线变异模式。基于最优传输的平行移动结构，推导了经验WT-PCA的统计收敛速率，建立了其与总体参考测度间2-Wasserstein距离的理论联系，为概率测度的降维分析提供了严谨的统计保证。', url: 'https://arxiv.org/abs/2606.17196', source: 'arxiv', level: 1, keywords: ["wasserstein", "probability", "measures", "dynamical", "principal"], date: '2026-06-17', authors: 'Peng Xu, Changbo Zhu, Young-Heon Kim, Xiaohui Chen', topics: ["垂直领域应用"] },
+  { title: 'From Parasocial Scripts to Dyadic Persistence in Autonomous AI-Agent Communities', summary: '本研究探讨自主AI智能体社区中是否存在类准社会互动（PSI）线索。通过分析Moltbook平台逾五万条评论，结合关键词匹配与大模型标注，证实了依恋亲密、互惠请求及自我认同等PSI口语化线索普遍存在，且显著关联原帖主的再参与及互惠回复结构。经多重稳健性检验，研究进一步揭示互惠行为与持续的双向互动模式一致，为LLM智能体间从单次互动脚本向持久二元关系演进的实证依据提供了理论支撑。', url: 'https://arxiv.org/abs/2606.17174', source: 'arxiv', level: 1, keywords: ["parasocial", "dyadic", "scripts", "persistence", "autonomous"], date: '2026-06-17', authors: 'Mohammadsadegh Abolhasani, Hamid Reza Firoozfar, Reza Mousavi, Paul Jen-Hwa Hu', topics: ["AI Agent与智能体"] },
+  { title: 'MemSlides: A Hierarchical Memory Driven Agent Framework for Personalized Slide Generation with Multi-turn Local Revision', summary: '针对个性化演示文稿生成中偏好保持与局部修改难题，提出MemSlides分层记忆智能体框架。该方法将记忆解耦为长期（用户画像与工具经验）与工作记忆，支持跨轮次偏好继承及基于作用域的最小化局部修订。实验表明，该架构显著提升了多意图下的用户一致性、闭环修改能力及编辑可靠性，证实了分离持久画像、会话状态与执行经验对实现高效个性化演示生成的核心价值。', url: 'https://arxiv.org/abs/2606.17162', source: 'arxiv', level: 1, keywords: ["memory", "revision", "user", "multi", "preferences"], date: '2026-06-17', authors: 'Ye Jin, Yangyang Xu, Jun Zhu, Yibo Yang', topics: ["AI Agent与智能体"] },
+  { title: 'On the Reliability of Networks of AI Agents: Density Evolution, Stopping Sets, and Architecture Optimization', summary: '本文研究多智能体协作系统的可靠性问题。针对现有系统缺乏理论解释的痛点，提出将此类系统建模为稀疏图上的消息传递，并扩展编码论中的密度演化理论。通过引入角色类型化的因子图及非线性验证器，分析代理 Abstention、验证失败及消息丢失三种擦除故障模式下的传播机制。主要结论包括证明密度演化定理以预测未解决子声明比例，揭示AND逻辑下的证书不对称性，并为架构优化提供理论阈值与有限长度分析依据。', url: 'https://arxiv.org/abs/2606.18121', source: 'arxiv', level: 1, keywords: ["agents", "density", "evolution", "single", "check"], date: '2026-06-17', authors: 'Ehsan Aghazadeh, Hossein Pishro-Nik', topics: ["AI Agent与智能体"] },
+  { title: 'Intelligence Entropy Principle and the ADE Stability Engineering Framework', summary: '针对大模型多智能体系统（MAS）从实验室转向生产环境时出现的非线性退化问题，本文提出“智能熵原理”，指出概率驱动系统自发趋向无序，并建立Lyapunov稳定条件。基于此构建ADE四层工程框架及五层故障分类法，引入弹性组织形态。经十万级实验与33.6天生产验证，系统通道断裂率降至近零，系统死亡概率低于0.02，显著提升了MAS的稳定性与可靠性。', url: 'https://arxiv.org/abs/2606.18065', source: 'arxiv', level: 1, keywords: ["intelligence", "entropy", "principle", "engineering", "framework"], date: '2026-06-17', authors: 'Dexing Liu (Shanghai Qijing Digital Technology)', topics: ["AI Agent与智能体"] },
+  { title: 'A Neuro-Symbolic Approach to Strategy Synthesis for Strategic Logics', summary: '针对多智能体系统中策略合成计算成本高的问题，提出一种神经符号框架。该方法将大语言模型作为策略生成预言机，结合形式化模型检查器进行验证，构建“生成-认证”架构以平衡搜索效率与形式化严谨性。在NatATL有界策略推理中，构建了首个包含4211个实例的数据集。实验表明，基于Qwen3-32B模型的认证流水线在策略合成任务上达到92%的准确率，有效解决了组合爆炸难题。', url: 'https://arxiv.org/abs/2606.17962', source: 'arxiv', level: 1, keywords: ["strategy", "synthesis", "strategic", "neuro", "symbolic"], date: '2026-06-17', authors: 'Marco Aruta, Vadim Malvone, Aniello Murano, Domenico Parente, Luca Rizzuti', topics: ["AI Agent与智能体"] },
+  { title: 'Trustworthy Self-Composable Big-Data-as-a-Service: An LLM-Orchestrated Multi-Agent Framework for Automated Data Engineering, AutoML, MLOps Deployment, and Drift-Aware Lifecycle Optimization', summary: '针对现有BDaaS平台缺乏全生命周期编排与自适应能力的问题，本文提出一种基于LLM协调的多智能体可信自组合框架。该方法将数据工程、AutoML及MLOps分解为专用智能体，由中心LLM进行动态编排、输出验证及漂移感知反馈，并集成人工介入与可追溯治理。实验表明，该框架在保持预测性能的同时，显著提升了工作流完成度、可复现性及漂移恢复等生产级可靠性指标，实现了从传统AutoML向可信、自适应BDaaS的演进。', url: 'https://arxiv.org/abs/2606.17915', source: 'arxiv', level: 1, keywords: ["data", "agent", "drift", "automl", "lifecycle"], date: '2026-06-17', authors: 'Aueaphum Aueawatthanaphisut, Badri Raj Lamichhane', topics: ["AI Agent与智能体"] },
+  { title: 'Intermittent Strategic Cooperation of Two Selfish Agents on Graphs', summary: '针对图结构中自私智能体间歇性合作的路径规划（IC2PP）问题，本研究构建了双玩家博弈模型。核心发现表明，尽管合作能缩短行程，但纯纳什均衡下的稳定合作受严格结构约束。研究证明了均衡解的存在性，并提出了多项式时间算法以枚举所有相关均衡。此外，通过博弈论协调机制解决多重均衡选择问题，实证分析了不同均衡对个体耗时及社会总福利的影响，为多智能体协同策略提供了理论依据与计算工具。', url: 'https://arxiv.org/abs/2606.17216', source: 'arxiv', level: 1, keywords: ["cooperation", "agents", "strategic", "intermittent", "graphs"], date: '2026-06-17', authors: 'Itay Shedlezki, Noa Agmon', topics: ["AI Agent与智能体"] },
+  { title: 'VISTA: Scale-Aware Visual Navigation via Action History Conditioning', summary: '针对视觉导航模型因动作归一化导致物理尺度失真及重复场景特征缺失的问题，提出VISTA框架。核心方法包括引入动作历史条件以显式关联预测与物理位移，并集成DINOv3编码器增强空间几何表征。实验表明，该模型在零样本部署中实现100%目标预测准确率，在户外、森林及办公等分布外环境中平均通过95个检查点，显著提升了复杂场景下的路径跟随鲁棒性与泛化能力。', url: 'https://arxiv.org/abs/2606.17294', source: 'arxiv', level: 1, keywords: ["navigation", "environments", "models", "deployment", "normalized"], date: '2026-06-17', authors: 'Maeva Guerrier, Koki Kobayashi, Simon Roy, Jana Pavlasek, Giovanni Beltrame', topics: ["具身智能与机器人"] },
+  { title: 'Contrastive Action-Image Pre-training for Visuomotor Control', summary: '针对机器人视觉编码器因缺乏大规模配对数据导致的瓶颈，本文提出对比动作-图像预训练（CAIP）。该方法利用大规模第一人称视频中的人手姿态作为末端执行器动作的代理，通过提取3D手部关键点构建与下游机器人动作空间对齐的表示，并采用对比学习目标学习统一的动作-图像表征。实验显示，仅用少量机器人数据即可超越DINOv2等先进编码器，在灵巧操作任务中性能提升超30%，证明了该 scalable 路径对物理交互视觉表征的有效性。', url: 'https://arxiv.org/abs/2606.17256', source: 'arxiv', level: 1, keywords: ["action", "training", "scale", "contrastive", "image"], date: '2026-06-17', authors: 'Yuvan Sharma, Dantong Niu, Anirudh Pai, Zekai Wang, Zhuoyang Liu, Baifeng Shi, Stefano Saravalle, Boning Shao, Ruijie Zheng, Jing Wang, Konstantinos Kallidromitis, Yusuke Kato, Fabio Galasso, Yuke Zhu, Danfei Xu, Linxi "Jim" Fan, Jitendra Malik, Trevor Darrell, Roei Herzig', topics: ["具身智能与机器人"] },
+  { title: 'ACE-Ego-0: Unifying Egocentric Human and Robotic Data for VLA Pretraining', summary: '针对具身智能预训练中机器人数据稀缺及人机数据异构难题，提出ACE-Ego-0统一框架。通过构建视频到动作的流水线，将海量第一人称人类视频转化为机器人格式的伪动作轨迹；采用基于相机空间、形态条件和时间对齐的统一动作表示以消除差异；引入可靠性感知训练目标与人类辅助损失，过滤噪声并聚焦可靠信号。实验表明，该框架在RoboCasa和RoboTwin上达到SOTA，并展现出强大的真实世界双臂操作迁移能力。', url: 'https://arxiv.org/abs/2606.17200', source: 'arxiv', level: 1, keywords: ["human", "action", "egocentric", "data", "supervision"], date: '2026-06-17', authors: 'Hao Li, Ganlong Zhao, Yufei Liu, Haotian Hou, Guoquan Ye, Tongyan Fang, Chunxiao Liu, Siyuan Huang, Jianbo Liu, Xiaogang Wang, Hongsheng Li', topics: ["具身智能与机器人"] },
+  { title: 'VL-MemKnG: Hybrid Memory with a Spatio-Temporal Knowledge Graph for Question Answering over Long Egocentric Navigation Trajectories', summary: '针对长程第一人称导航视频中证据分散且查询效率低的问题，提出VL-MemKnG混合记忆框架。该方法结合时空知识图谱与持久化片段级上下文记忆，前者捕捉结构化关系，后者保留长时域语境。通过联合检索与推理模块，实现基于证据的回答及时间有序支持。在WalkieKnowledgeT基准上，Top-1准确率提升至67，显著优于Gemini 2.5 Pro等模型，尤其在时序全局及分散聚合任务中优势明显，兼顾了性能与推理效率。', url: 'https://arxiv.org/abs/2606.17183', source: 'arxiv', level: 1, keywords: ["memory", "temporal", "long", "graph", "evidence"], date: '2026-06-17', authors: 'Svetlana Lukina, Mohamad Al Mdfaa, Gloria Haro, Sergey Zagoruyko, Gonzalo Ferrer', topics: ["具身智能与机器人"] },
+  { title: 'ParkingTransformer: LLM-Enhanced End-to-End Trajectory Planning for Autonomous Parking', summary: '针对端到端自动泊车缺乏语义理解与可解释性的问题，提出ParkingTransformer框架。该方法结合多视图感知与大语言模型（LLM）场景理解能力，通过轨迹查询与LLM隐式状态特征交互，直接输出规划轨迹，摒弃密集BEV表示。引入3D位置编码弥补LLM空间推理不足，采用固定窗口流机制提升长时序处理效率，并借助由粗到细解码策略增强精度。CARLA仿真及实车实验验证了该方法的有效性与可行性。', url: 'https://arxiv.org/abs/2606.17082', source: 'arxiv', level: 1, keywords: ["autonomous", "trajectory", "parking", "llms", "parkingtransformer"], date: '2026-06-17', authors: 'Hauteng Wu, Xu Li, Dong Kong, Zihang Wang, Xieyuanli Chen, Benwu Wang, Wenkai Zhu', topics: ["具身智能与机器人"] },
+  { title: 'HRDX: A Large-Scale Vector HD-Map Dataset', summary: '针对现有高精地图数据集规模小、语义稀疏及缺乏航拍模态的问题，本文发布HRDX大规模矢量高精地图数据集。该数据集涵盖1400公里驾驶数据，融合多相机、激光雷达及高精度航拍影像，标注10类矢量要素及20余项属性。提出复合评分CS以联合评估几何与属性准确性。实验表明，数据规模提升在线建图性能，且航拍影像提供结构先验，通过知识蒸馏可使纯视觉模型受益，支持大规模高精地图学习与多模态BEV融合研究。', url: 'https://arxiv.org/abs/2606.17080', source: 'arxiv', level: 1, keywords: ["scale", "aerial", "hrdx", "vector", "large"], date: '2026-06-17', authors: 'Sahith Reddy Chada, Isht Dwivedi, Nirav Savaliya', topics: ["垂直领域应用"] },
+  { title: 'Extracting Semantics: LLM-Guided Automatic Population of Robot Ontology from URDF', summary: '针对机器人本体构建依赖人工、效率低下的问题，本文提出利用大语言模型（LLM）自动将URDF转化为语义丰富的本体。核心方法是通过提示现有本体概念引导LLM推断语义关系，并结合多数投票及语法/模式验证提升可靠性。实验表明，该方法能有效连接底层机器人描述与结构化知识表示，为具身智能提供可解释的常识推理基础。', url: 'https://arxiv.org/abs/2606.17073', source: 'arxiv', level: 1, keywords: ["robot", "knowledge", "ontology", "urdf", "descriptions"], date: '2026-06-17', authors: 'Bastien Dussard (LAAS-RIS, LAAS), Guillaume Sarthou (LAAS-RIS, LAAS)', topics: ["具身智能与机器人"] },
+  { title: 'Training LLMs with Reinforcement Learning over Digital Twin Representations for Reasoning-Intensive Surgical VideoQA', summary: '针对手术视频问答中多步推理受限及感知-推理耦合问题，提出基于数字孪生表示的强化学习框架。通过构建分层概率表示解耦视觉感知与逻辑推理，并结合临床合理性评估设计新型奖励函数优化LLM训练。在自建REAL-Colon-Reason基准及现有数据集上实现SOTA性能，验证了该方法在复杂时空推理任务中的有效性。', url: 'https://arxiv.org/abs/2606.17279', source: 'arxiv', level: 1, keywords: ["reasoning", "representations", "surgical", "across", "temporal"], date: '2026-06-17', authors: 'Yiqing Shen, Han Zhang, Mathias Unberath', topics: ["垂直领域应用"] },
+  { title: 'Pulling The REINS: Training-Free Safety Alignment of Video Diffusion Models via Representation Steering', summary: '针对开源视频扩散模型生成不安全内容的难题，本文提出无需训练的REINS方法。研究发现安全结构线性编码于隐藏状态中，通过监督PCA提取单一方向即可区分安全与不安全轨迹。在推理阶段，向中间层激活添加该方向可引导生成转向语义相关的无害内容，无需权重更新且开销极低。机制分析揭示深度与信息可用性的权衡，并在9个模型及多种参数规模上验证了其广泛有效性。', url: 'https://arxiv.org/abs/2606.17257', source: 'arxiv', level: 1, keywords: ["video", "safety", "diffusion", "generation", "models"], date: '2026-06-17', authors: 'Rohit Kundu, Arindam Dutta, Sarosij Bose, Athula Balachandran, Amit K. Roy-Chowdhury', topics: ["AI安全与治理"] },
+  { title: 'GeoDisaster: Benchmarking Orchestrated Agents for Operational Disaster Geo-Intelligence', summary: '针对遥感视觉语言模型缺乏工具化空间推理与证据支撑决策的问题，本文提出GeoDisaster基准，涵盖5类灾害任务及2921个实例，基于可执行工作流生成真值。同时构建编排式多智能体框架，集成18种专业工具，并通过角色-契约期望对齐（RCEA）机制，结合失败感知监督微调与契约强化学习优化Agent协作。实验表明，该基准有效挑战现有模型，RCEA显著提升了工具使用、证据 grounding、状态一致性及决策质量。', url: 'https://arxiv.org/abs/2606.17246', source: 'arxiv', level: 1, keywords: ["geodisaster", "operational", "disaster", "grounded", "evidence"], date: '2026-06-17', authors: 'Maram Hasan, Aman Verma, Savitra Roy, Hariseetharam Gunduboina, Daksh Jain, Muhammad Haris Khan, Subhasis Chaudhuri, Biplab Banerjee', topics: ["垂直领域应用"] },
+  { title: 'Landsat-Sentinel-2 Algal Bloom Mapping Using Vision Transformers: Model Description, Implementation, and Examples', summary: '本研究针对Landsat与Sentinel-2影像在藻华监测中因光谱覆盖有限及缺乏统一反射率产品导致的挑战，提出基于视觉Transformer（ViT）的30米分辨率藻华映射方法。通过构建全球分布数据集，对比四种Transformer架构与卷积基线，发现深度学习模型在检测漂浮藻华方面表现优异。其中，Swin Transformer在云和耀斑干扰下显著优于传统光谱指数法，有效减少误报。结合MODIS对比验证，高空间分辨率结合深度学习可实现对破碎、不规则藻华的稳定、一致监测，为动态近海环境提供了可靠的技术方案。', url: 'https://arxiv.org/abs/2606.17242', source: 'arxiv', level: 1, keywords: ["bloom", "algal", "coastal", "landsat", "sentinel"], date: '2026-06-17', authors: 'Thainara Lima, Vitor Martins', topics: ["垂直领域应用"] },
+  { title: 'Beyond Benchmarks: Continuous Edge Inference for Fine-Grained Roadside Perception', summary: '针对边缘设备持续推理中基准测试高估性能的问题，本文提出Edge-TSR系统。该方法在Jetson Orin Nano上集成检测、跟踪及轻量级时序稳定机制，解决流式视频中的热节流与性能波动。研究发现静态基准测试导致20-30%的性能虚高。Edge-TSR通过时序稳定恢复最高10.16%的分类精度，并在55分钟真实路测中维持16.18 FPS实时运行且无过热。结论强调部署感知评估与时序稳定对边缘AI至关重要。', url: 'https://arxiv.org/abs/2606.17241', source: 'arxiv', level: 1, keywords: ["inference", "edge", "deployment", "evaluation", "continuous"], date: '2026-06-17', authors: 'Aditya Mishra, Haroon Lone', topics: ["垂直领域应用"] },
+  { title: 'Quantum Enchanced Multi-Scale CNN with Bi-directional Mamba for Crop Field Analysis', summary: '针对高光谱图像作物分类中维度高、样本少及类别不平衡难题，提出BiSpectral Mamba框架。该方法结合多尺度CNN提取层级特征，利用光谱注意力机制抑制噪声，并通过双向状态空间模型捕捉长程依赖，辅以量子启发式学习优化训练。实验在UAVHSI-Crop数据集上达到84.83%总体准确率，验证了卷积、注意力与状态空间融合在鲁棒性空间-光谱特征学习上的有效性，为精准农业应用提供新范式。', url: 'https://arxiv.org/abs/2606.17222', source: 'arxiv', level: 1, keywords: ["crop", "spectral", "feature", "spatial", "quantum"], date: '2026-06-17', authors: 'Mohammad Salman Khan, Ehsan Atoofian, Saad B. Ahmed', topics: ["垂直领域应用"] },
+  { title: 'Not Truly Multilingual: Script Consistency as a Missing Dimension in VLM Evaluation', summary: '针对当前VLM多语言评估忽视多文字系统的问题，本文提出PuMVR基准，涵盖旁遮普语三种文字（古尔穆基、夏姆卡希、罗马）。评估显示模型存在显著“文字差距”，视觉输入虽提升绝对性能但未缩小文字间差异，跨文字上下文迁移脆弱。研究证明现有VLM并非真正多文字支持，并提出“文字一致性率”作为强制指标，以推动公平的多文字AI评估。', url: 'https://arxiv.org/abs/2606.17188', source: 'arxiv', level: 1, keywords: ["script", "multilingual", "vlms", "visual", "truly"], date: '2026-06-17', authors: 'Prabhjot Singh, Bhushan Pawar, Madhu Reddiboina, Rajvee Sheth', topics: ["多模态与生成技术"] },
+  { title: 'MODE: Modality-Decomposed Expert-Level Mixed-Precision Quantization for MoE Multimodal LLMs', summary: '针对MoE多模态大模型量化中因视觉Token主导导致的专家重要性估计偏差问题，提出MODE框架。该方法按模态分解专家选择频率，过滤冗余视觉Token以去噪，并结合模态感知的量化敏感度评估专家重要性。通过整数线性规划在预算约束下分配位宽。实验表明，MODE在W3A16设置下平均性能损失控制在2.9以内，在极端2bit设置下优势更显著，有效解决了多模态混合精度量化的精度下降难题。', url: 'https://arxiv.org/abs/2606.17118', source: 'arxiv', level: 1, keywords: ["expert", "modality", "level", "vision", "frequency"], date: '2026-06-17', authors: 'Yuanteng Chen, Peisong Wang, Zhilei Liu, Nanxin Zeng, Yuantian Shao, Shiqiang Lang, Tao Liu, Chuangyi Li, Qinghao Hu, Gang Li, Jing Liu, Jian Cheng', topics: ["多模态与生成技术"] },
+  { title: 'Probing, Fusion, and Trustworthiness: A Systematic Evaluation of Foundation Model Representations for Multimodal Cancer Analysis', summary: '本研究针对基础模型在分布偏移下的泛化能力不足问题，系统评估其在多模态癌症分析中的表现。通过对比五种基础模型在全切片图像与转录组数据上的单模态探测性能，发现二者具有互补性；并比较三种融合策略，证实仅在无单一主导模态时融合能带来增益。结合共形预测评估可信度，结果表明基础模型在分布外数据上表现优异，且不确定性感知推理能有效恢复错误点预测中的真实诊断，为临床支持提供了可靠依据。', url: 'https://arxiv.org/abs/2606.17115', source: 'arxiv', level: 1, keywords: ["representations", "multimodal", "fusion", "prediction", "data"], date: '2026-06-17', authors: 'Jingyu Hu, Giuseppe Tripodi, Reed Naidoo, Sarah F. McGough, Tapabrata Chakraborti', topics: ["垂直领域应用"] },
+  { title: 'The Critical Role of Model Selection in Causal Inference: A Comparative Analysis of Classification Models within the InferBERT Framework for Pharmacovigilance', summary: '本研究探讨因果推断框架InferBERT中模型选择对药物警戒的影响。通过对比XGBoost、ALBERT、BioBERT及Med-LLaMA在两个基准数据集上的表现，发现领域特定预训练至关重要。BioBERT凭借最高准确率及与传统信号最强的一致性胜出，而大语言模型Med-LLaMA表现不佳。结论表明，在计算药物警戒中，采用轻量级、领域感知的模型比单纯扩大模型规模更有效，领域预训练是提升因果检测性能的关键。', url: 'https://arxiv.org/abs/2606.17113', source: 'arxiv', level: 1, keywords: ["causal", "models", "inferbert", "pharmacovigilance", "domain"], date: '2026-06-17', authors: 'Csaba Kiss, Roland Molontay, Gabriele Pergola', topics: ["AI安全与治理"] },
+  { title: 'Models Take Notes at Prefill: KV Cache Can Be Editable and Composable', summary: '该研究揭示KV缓存本质为可编辑、可组合的“笔记”。针对前缀缓存无法处理字段变更的问题，提出KV缓存可编辑性（通过纠错修正结论）与可组合性（技能位置便携、RoPE重定位拼接）。实验表明，该方法在8B模型中单字段编辑即可恢复决策，拼接效果媲美全量重算。统一代理延迟降低14.9倍，在vLLM基准测试中保持98.5%缓存命中率，P90首字延迟缩减53-398倍，广泛适用于各类注意力机制及多模态场景。', url: 'https://arxiv.org/abs/2606.17107', source: 'arxiv', level: 1, keywords: ["notes", "cache", "prefix", "prefill", "across"], date: '2026-06-17', authors: 'Bojie Li', topics: ["大模型算法与优化"] },
+  { title: 'Informative Missingness to Generate Irregular Clinical Time Series', summary: '针对电子健康记录中检验数据不规则缺失反映临床决策与生理状态的问题，本文提出基于扩散模型的生成方法，联合建模实验室数值及其观测模式。通过扩展TimeDiff框架，利用互补扩散目标学习连续值与离散缺失模式，并在DACMI基准上验证。实验表明，生成数据在单变量分布及值-缺失联合嵌入上与真实轨迹高度一致，证实扩散模型能捕捉MNAR机制下的生理-行为依赖关系，为构建保留关键信息的临床基础模型及后续Prior-Data Fitted Networks训练提供了有效合成先验。', url: 'https://arxiv.org/abs/2606.17106', source: 'arxiv', level: 1, keywords: ["missingness", "data", "informative", "clinical", "patient"], date: '2026-06-17', authors: 'Hadi Mehdizavareh, Gabriele Santangelo, Giovanna Nicora, Simon Lebech Cichosz, Arianna Dagliati, Arijit Khan, Riccardo Bellazzi', topics: ["垂直领域应用"] },
+  { title: 'Diagnosing and Repairing Shape-Prior Shortcuts in Long-Range Single-Shot Fringe Projection Profilometry', summary: '针对长距单次条纹投影轮廓术中信噪比低及单目解相模糊问题，本文通过机制可解释性与共形不确定性量化诊断发现，基线模型依赖物体边界形状先验而非相位解码。为此提出PhiCalNet架构，通过输出包裹相位并应用可微校准层映射深度，从结构上消除形状捷径。实验表明，该方法将平均绝对误差降低3.3倍至4.46mm，证实架构设计优于物理损失约束，有效解决了长距测量中的物理失效问题。', url: 'https://arxiv.org/abs/2606.17093', source: 'arxiv', level: 1, keywords: ["fringe", "object", "shape", "range", "single"], date: '2026-06-17', authors: 'Adam Haroon, Anush Lakshman, Cody Fleming, Beiwen Li', topics: ["垂直领域应用"] },
+  { title: 'Correct When Paired, Wrong When Split: Decoupling and Editing Modality-Specific Neurons in MLLMs', summary: '针对多模态大模型（MLLMs）知识编辑中存在的“解耦失效”问题——即实体知识在图文联合输入下可更新，但在单模态输入下回退至旧事实，本研究指出该现象源于知识分布在解耦的模态特异性通路中。为此，提出DECODE方法，显式解耦并定位模态特异性神经元组以进行靶向知识更新。实验表明，DECODE在不同模态触发条件下均能实现有效的知识更新，成功缓解了编辑解耦失败的问题。', url: 'https://arxiv.org/abs/2606.17057', source: 'arxiv', level: 1, keywords: ["knowledge", "when", "editing", "modality", "decoupling"], date: '2026-06-17', authors: 'Tingchao Fu, Wenkai Wang, Fanxiao Li, Huadong Zhang, Jinhong Zhang, Dayang Li, Yunyun Dong, Renyang Liu, Wei Zhou', topics: ["多模态与生成技术"] },
+  { title: 'Are Online Skill and Memory Modules Always Worth Their Tokens? A Budget-Constrained Study of Web Agents', summary: '本文探讨在线技能与记忆模块在固定推理预算下的性价比。通过对比AWM、ASI等增强方法与Token匹配的基线模型，研究发现：在WebArena及WorkArena任务中，基线模型以更少Token消耗达到或超越增强模块的性能。结论指出，增强模块的收益常被高估，其优势仅在特定领域显著；同时，运行方差对结果影响巨大，应作为在线Web Agent评估的核心指标。', url: 'https://arxiv.org/abs/2606.15017', source: 'arxiv', level: 1, keywords: ["online", "budget", "memory", "modules", "tokens"], date: '2026-06-17', authors: 'Sina Hajimiri, Masih Aminbeidokhti, Jose Dolz, Ismail Ben Ayed, Issam H. Laradji, Spandana Gella, Nicolas Gontier', topics: ["大模型算法与优化"] },
+  { title: 'Nemotron 3 Ultra: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning', summary: '针对自主智能体对长上下文与高效推理的需求，本文提出Nemotron 3 Ultra，一种550B总参数量、55B激活参数的混合Mamba-Transformer MoE模型。通过LatentMoE、NVFP4预训练及多环境RLVR等技术创新，模型实现1M超长上下文。实验表明，其在保持同等精度的同时，推理吞吐量较现有开源LLM提升6倍，显著优化了长周期智能体任务的性能与效率，并开源了全量权重及训练数据。', url: 'https://arxiv.org/abs/2606.15007', source: 'arxiv', level: 1, keywords: ["nemotron", "ultra", "trained", "multi", "open"], date: '2026-06-17', authors: 'NVIDIA (Allan),  : (Allan), Aaron Blakeman (Allan), Aaron Thomas (Allan), Aastha Jhunjhunwala (Allan), Abhibha Gupta (Allan), Abhinav Khattar (Allan), Adam Rajfer (Allan), Adi Renduchintala (Allan), Adil Asif (Allan), Aditya Vavre (Allan), Adriana Flores Miranda (Allan), Ahmad Bilal (Allan), Aileen Zaman (Allan), Ajay Hotchandani (Allan), Akanksha Shukla (Allan), Akhiad Bercovich (Allan), Aleksander Ficek (Allan), Alex Gronskiy (Allan), Alex Kondratenko (Allan), Alex Steiner (Allan), Alex Ye (Al', topics: ["大模型算法与优化"] },
+  { title: 'CoRA: Confidence-Rationale Alignment for Reliable Chain-of-Thought Reasoning', summary: '针对大模型思维链（CoT）中“高置信度与薄弱推理不一致”的问题，本文提出CoRA框架。该方法基于GRPO强化学习，联合奖励答案正确性、置信度及基于规则（涵盖依据、连贯性等）的推理支持度，且无需金标准标注。在MedQA等数据集上的实验表明，该方法显著降低置信度-推理对齐误差（最高26.51%），在保持准确率的同时优化了校准效果，证实可靠推理需兼顾自信答案与实质支持的推理过程。', url: 'https://arxiv.org/abs/2606.14961', source: 'arxiv', level: 1, keywords: ["rationale", "answer", "confidence", "alignment", "reasoning"], date: '2026-06-17', authors: 'Juming Xiong, Weixin Liu, Kevin Guo, Congning Ni, Junchao Zhu, Chongyu Qu, Chao Yan, Katherine Brown, Avinash Baidya, Xiang Gao, Bradley Malin, Zhijun Yin', topics: ["大模型算法与优化"] },
+  { title: 'Simplifying the Modeling of Arbitrary Conditionals in Natural Language', summary: '针对因果Transformer难以高效处理任意条件（如前后文混合）的问题，本文提出AC-GPT架构。该方法通过简单修改标准因果Transformer，在单次前向传播中实现任意条件的评估与采样，同时保留左到右顺序及下一词预测目标。实验表明，AC-GPT在提升任意条件建模能力的同时，未损害标准生成性能，且兼容现有大模型微调，优于基线方法。', url: 'https://arxiv.org/abs/2606.14943', source: 'arxiv', level: 1, keywords: ["arbitrary", "conditionals", "modeling", "left", "right"], date: '2026-06-17', authors: 'Yinhan Lu, Eric Elmoznino, L\'eo Gagnon, Sarthak Mittal, Tejas Kasetty, Guillaume Lajoie', topics: ["大模型算法与优化"] },
+  { title: 'Context Compression Is Not One Thing: Readable Symbolic Re-expression vs. Coherent Summary at Matched Budget', summary: '针对小模型多跳问答中的上下文压缩难题，本文提出Telegraph English，一种通过结构化实体-关系语句重写检索段落的可读符号格式，以更低Token成本保留推理证据。在MuSiQue等数据集上的实验表明，该方法在匹配预算下优于字符删除、截断及随机采样等基线，F1提升13-20个百分点，并在最难数据集上超越连贯文本摘要。研究证实，可读符号重表达在同等Token预算下，比自然语言或连贯摘要更密集地保留实体内容。', url: 'https://arxiv.org/abs/2606.14875', source: 'arxiv', level: 1, keywords: ["compression", "readable", "symbolic", "coherent", "matched"], date: '2026-06-17', authors: 'Sisong Bei, Mikhail L. Arbuzov, Ziwei Dong, Dmitri Kalaev, Alexey Shvets', topics: ["大模型算法与优化"] },
+  { title: 'Evaluating the Robustness of Proof Autoformalization in Lean 4', summary: '针对证明自动形式化在理想数据集外鲁棒性缺失的问题，本文提出首个鲁棒性评估框架。通过构建全局（风格改写）与局部（数值/步骤扰动）两类扰动基准，量化模型的形式化稳定性与忠实度。实验表明，现有七款主流LLM模型均对全局扰动敏感，且多数无法在局部扰动下保持输出忠实性，揭示了当前方法在非规范证明处理上的显著缺陷。', url: 'https://arxiv.org/abs/2606.14867', source: 'arxiv', level: 1, keywords: ["proof", "perturbations", "autoformalization", "informal", "under"], date: '2026-06-17', authors: 'Zhengtao Gui, Sheng Yang, Zhouxing Shi', topics: ["AI安全与治理"] },
+  { title: 'PhoneHarness: Harnessing Phone-Use Agents through Mixed GUI, CLI, and Tool Actions', summary: '针对手机智能体需完成真实工作流而非仅GUI控制的痛点，提出PhoneHarness框架。该方法融合GUI、CLI及工具动作，通过确定性路由与可审计执行轨迹，实现混合动作的可靠执行。构建PhoneHarness Bench基准，侧重评估任务完成的可观测副作用。实验显示，该方法通过75.0%的通过率，显著优于现有最强设置12.9个百分点。研究证实，可靠的手机自动化依赖于动作表面路由与可验证执行，而非仅视觉GUI控制。', url: 'https://arxiv.org/abs/2606.14832', source: 'arxiv', level: 1, keywords: ["phoneharness", "phone", "agents", "side", "action"], date: '2026-06-17', authors: 'Chenxin Li, Zhengyao Fang, Zhengyang Tang, Pengyuan Lyu, Xingran Zhou, Xin Lai, Fei Tang, Liang Wu, Yiduo Guo, Weinong Wang, Junyi Li, Yi Zhang, Yang Ding, Huawen Shen, Sunqi Fan, Shangpin Peng, Zheng Ruan, Anran Zhang, Benyou Wang, Chengquan Zhang, Han Hu', topics: ["AI Agent与智能体"] },
+  { title: 'MemTrace: Probing What Final Accuracy Misses in Long-Term Memory', summary: '针对LLM长期记忆评估仅聚合准确率、掩盖细粒度失效的问题，本文提出MemTrace基准。其以“知识点”为单位，在记忆时长、问题类型及证据条件三个维度进行探测。实验发现，高准确率掩盖了状态追踪与错误前提修正能力的缺失；主要瓶颈在于证据利用而非检索，失败案例中证据可获取率远高于缺失率。结论指出，提升长期记忆性能的关键在于优化对已获证据的使用，而非单纯增加存储或检索能力。', url: 'https://arxiv.org/abs/2606.17328', source: 'arxiv', level: 1, keywords: ["memory", "fact", "question", "evidence", "memtrace"], date: '2026-06-17', authors: 'Xianxuan Long, Zhikai Chen, Shenglai Zeng, Shouren Wang, Kai Guo, Jiliang Tang', topics: ["大模型算法与优化"] },
+  { title: 'Quantifying Consistency in LLM Logical Reasoning via Structural Uncertainty', summary: '针对大模型逻辑推理中路径不稳定导致可靠性评估缺失的问题，提出“结构不确定性”框架。该方法通过生成候选解并构建自偏好排序分布，利用Bradley-Terry与PageRank算法，将信号分解为跨试验排名不稳定性与试验内候选模糊度两个熵分量。实验表明，该指标与答案离散度互补：跨试验不稳定性负相关于准确率，揭示不可靠推理；试验内模糊度正相关，反映多路径竞争。此方法有效识别逻辑推理中的不一致性，并划定其适用边界。', url: 'https://arxiv.org/abs/2606.17312', source: 'arxiv', level: 1, keywords: ["reasoning", "structural", "consistency", "trial", "logical"], date: '2026-06-17', authors: 'Baishali Chaudhury, Mengdie Flora Wang, Hyunji Hayley Park, Rahul Ghosh, Sungmin Hong, Jae Oh Woo', topics: ["大模型算法与优化"] },
+  { title: 'Nothing from Something: Can a Language Model Discover 0?', summary: '本研究探讨大语言模型能否独立发现数学概念“零”，以评估其分布外泛化能力。实验表明，GPT-2规模模型无法仅凭预训练实现该发现；但在少量样本微调后性能显著提升，且语言预训练可减少约50%的所需样本量。结论证实语言能力可为神经模型的数学发现提供脚手架支持，揭示了从数据到逻辑创新的潜在路径。', url: 'https://arxiv.org/abs/2606.17289', source: 'arxiv', level: 1, keywords: ["language", "mathematical", "models", "discover", "systems"], date: '2026-06-17', authors: 'Phoebe Zeng, Thomas L. Griffiths, Brenden M. Lake', topics: ["大模型算法与优化"] },
+  { title: 'Skill-Constrained Model Predictive Control for Resilient Manufacturing Supply Chains', summary: '针对技能受限制造供应链中培训与生产资源竞争及认证衰减问题，提出闭环技能约束模型预测控制（MPC）。该方法每班次求解混合整数规划，统筹生产、库存与培训决策。在SkillChain-Gym合成场景下评估发现，无单一策略占优：当技能瓶颈可提前预测时，MPC表现更佳；而在突发冲击或需求容量边界附近，静态交叉培训保险更具韧性。研究表明，预测能力而非自适应本身决定了MPC的有效性。', url: 'https://arxiv.org/abs/2606.17269', source: 'arxiv', level: 1, keywords: ["skill", "production", "training", "predictive", "capacity"], date: '2026-06-17', authors: 'Carlos Eduardo Sanoja', topics: ["垂直领域应用"] },
+  { title: 'SkillChain-Gym: A Benchmark for Reskilling-Aware Production-Inventory Control under Disruptions', summary: '针对生产库存控制中劳动力技能动态变化及中断影响的研究空白，提出SkillChain-Gym基准测试平台。该平台整合了技能遗忘、认证阈值及培训容量约束，支持确定性回放与多维度评估。实验对比了多种策略，发现无单一最优解：具备培训能力的策略优于仅生产模式；适应性训练在瓶颈可预测时有效，而静态交叉培训在突发冲击下更具韧性。结果表明，产能松弛率与遗忘速率决定策略适用性，需基于预测动态切换技能保险与响应机制。', url: 'https://arxiv.org/abs/2606.17266', source: 'arxiv', level: 1, keywords: ["production", "training", "when", "benchmark", "reskilling"], date: '2026-06-17', authors: 'Carlos Eduardo Sanoja', topics: ["垂直领域应用"] },
+  { title: 'When Rules Learn: A Self-Evolving Agent for Legal Case Retrieval', summary: '针对法律检索中语言复杂及BM25基线强劲的问题，本文提出一种无需参数训练的自进化规则驱动查询重写框架。该方法利用LLM智能体构建自动评估环境，通过迭代生成重写规则、规划组合验证实验及基于历史反馈剔除无效规则，实现规则集的自进化。在LeCaRD-v2基准上的实验表明，该方法显著优于人工设计及贪婪选择等非进化基线，证实了LLM利用历史结果与内在知识优化规则集的有效性。', url: 'https://arxiv.org/abs/2606.17220', source: 'arxiv', level: 1, keywords: ["rule", "rules", "self", "legal", "retrieval"], date: '2026-06-17', authors: 'Mingxu Tao, Jiawei Hu, Xian Zhou, Wenpeng Hu, Jiajun Cheng, Yunbo Cao, Zhunchen Luo, Guotong Geng', topics: ["垂直领域应用"] },
+  { title: 'Beyond Parallel Sampling: Diverse Query Initialization for Agentic Search', summary: '针对智能体搜索中并行采样因首轮查询冗余导致收益递减的问题，提出无需训练的DivInit方法。该方法从单次调用中抽取候选集并筛选多样化种子作为初始查询，以替代独立采样，从而减少证据重叠。在五个开源模型及八个基准测试中，DivInit在同等算力下使多跳问答平均提升5-7分，有效突破了传统并行采样的性能瓶颈。', url: 'https://arxiv.org/abs/2606.17209', source: 'arxiv', level: 1, keywords: ["parallel", "sampling", "first", "divinit", "diverse"], date: '2026-06-17', authors: 'Sidhaarth Murali, Jo\~ao Coelho, Jingjie Ning, Jo\~ao Magalh\~aes, Bruno Martins, Chenyan Xiong', topics: ["AI Agent与智能体"] },
+  { title: 'Predicting model behavior before release by simulating deployment', summary: '针对模型发布前行为预测难题，OpenAI提出部署模拟（Deployment Simulation）方法。该方法利用真实对话数据构建模拟环境，在发布前推演模型表现。核心在于通过仿真提升安全评估的准确性与可靠性。实验表明，此方法能有效预判潜在风险，优化模型安全性评估流程，为AI系统的安全部署提供前置验证手段，显著降低上线后的不可控风险。', url: 'https://openai.com/index/deployment-simulation', source: 'openai', level: 1, keywords: ["deployment", "behavior", "before", "predicting", "release"], date: '2026-06-16', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Introducing the OpenAI Partner Network', summary: '针对企业AI落地难的问题，OpenAI推出合作伙伴网络，投入1.5亿美元支持全球伙伴加速企业级AI的采用、部署与转型。该举措旨在通过资金赋能，强化生态协作，降低技术门槛，推动大模型在垂直行业的规模化应用。核心结论表明，通过构建紧密的合作伙伴体系，可有效促进AI技术与实际业务场景的深度融合，加速产业智能化升级进程。', url: 'https://openai.com/index/introducing-openai-partner-network', source: 'openai', level: 1, keywords: ["openai", "partner", "network", "introducing", "launches"], date: '2026-06-14', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'Ire identifies another LOTUSLITE specimen', summary: '针对LOTUSLITE恶意软件规避主流EDR检测的问题，微软Project Ire团队通过逆向工程分析新样本，识别出其关键特征。研究证实，尽管多数商业EDR工具未能检出该威胁，但IRE的分析方法能有效揭示其意图与行为模式。主要结论表明，传统检测机制存在盲区，而基于深度逆向工程的技术手段在应对高级持续性威胁及未知变种时具有显著优势，为提升端点安全防护提供了重要参考。', url: 'https://www.microsoft.com/en-us/research/blog/ire-identifies-another-lotuslite-specimen/', source: 'microsoft_research', level: 1, keywords: ["lotuslite", "identifies", "another", "specimen", "project"], date: '2026-06-12', authors: 'Brian Caswell, Bob Fleck, Mike Walker, Sarah Smith', topics: ["AI应用生态与工具"] },
+  { title: 'New OpenAI Academy courses for the next era of work', summary: '针对未来工作场景对AI技能的需求，本研究提出并推出了OpenAI Academy的三门新课程。核心方法聚焦于培养实用AI能力、构建可复用的工作流程以及在日常工作中应用智能体（Agents）。主要结论表明，通过系统化培训，从业者能有效掌握AI工具，实现工作流的自动化与标准化，从而提升工作效率并适应智能化时代的工作变革。', url: 'https://openai.com/index/academy-courses-applying-ai-at-work', source: 'openai', level: 1, keywords: ["openai", "academy", "courses", "work", "next"], date: '2026-06-12', authors: '', topics: ["垂直领域应用"] },
+  { title: 'How Preply combines AI and human tutors to personalize learning', summary: '本研究探讨Preply如何整合AI与人类导师实现个性化语言学习。针对传统教学反馈滞后及资源不均问题，利用OpenAI技术自动生成课程摘要、提供个性化反馈并生成针对性练习。核心方法在于构建“AI辅助+人工主导”的混合模式，既保留人类导师的情感交互优势，又发挥AI在内容生成与即时反馈上的效率。结论表明，该方案显著提升了学习体验的个性化程度与教学效率，为教育科技领域的人机协作提供了可复用的实践范式。', url: 'https://openai.com/index/preply', source: 'openai', level: 1, keywords: ["preply", "learning", "combines", "human", "tutors"], date: '2026-06-12', authors: '', topics: ["垂直领域应用"] },
+  { title: 'ArogyaSutra: A Multi-Agent Framework for Multimodal Medical Reasoning in Indic Languages', summary: '针对多模态大模型在低资源印度语医疗场景下的性能瓶颈，本文构建了涵盖七种印度语及多种影像模态的大规模多模态医疗问答数据集ArogyaBodha。提出ArogyaSutra框架，采用基于Actor-Critic的多智能体架构，结合工具定位与双记忆机制实现分步推理，并利用模拟轨迹进行蒸馏优化。实验表明，该方案显著提升了各印度语种的医疗推理准确率，验证了各组件的有效性，有助于促进AI医疗资源的公平获取。', url: 'https://tldr.takara.ai/p/2606.13572', source: 'huggingface_papers', level: 1, keywords: ["medical", "multimodal", "reasoning", "languages", "arogyasutra"], date: '2026-06-11', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'Adaptive Turn-Taking for Real-time Multi-Party Voice Agents', summary: '针对多角色语音交互中动态抢话难题，提出ModeratorLM框架。该方法基于流式语音大模型，通过显式角色条件控制发言权，并引入思维链推理增强上下文理解。构建RolePlayConv大规模合成数据集进行训练。实验表明，相比基线模型，该方案在真实会议数据上使发言精度提升超40%、召回率超70%，显著降低误打断率，有效优化了多模态对话的实时交互体验。', url: 'https://tldr.takara.ai/p/2606.13544', source: 'huggingface_papers', level: 1, keywords: ["turn", "taking", "multi", "party", "role"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Accelerating Speculative Diffusions via Block Verification', summary: '针对扩散模型因连续空间残差采样困难导致推测解码效率低的问题，本文提出一种新机制，将LLM中的块验证（Block Verification）适配至扩散模型，显著提升草稿接受率。同时形式化分析了无需训练的Free Drafter自推测草稿器。实验表明，结合块验证的Free Drafter在无需额外训练且开销极小的情况下，相比现有推测方法最高实现6.3倍加速，有效解决了连续空间高效推测采样的难题。', url: 'https://tldr.takara.ai/p/2606.13426', source: 'huggingface_papers', level: 1, keywords: ["speculative", "diffusions", "verification", "sampling", "block"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Person Identification from Contextual Motion', summary: '针对基于运动风格的人员识别问题，本文提出一种交互式身份推断框架。核心方法是将识别过程建模为主系统与用户间的序列消息交换，利用受人类信息处理范式启发的概率生成模型，动态选择能最大化响应与身份互信息的视觉提示，并据此更新后验概率。主要结论表明，该交互式方案在五个公开数据集及自建数据集上实现了高识别率，首次实现了基于运动模式的交互式人员身份验证。', url: 'https://tldr.takara.ai/p/2606.13410', source: 'huggingface_papers', level: 1, keywords: ["identification", "person", "motion", "subjects", "process"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Once-for-All: Scalable Simultaneous Forecasting via Equilibrium State Estimation', summary: '针对多交互系统同时预测难题，提出均衡状态估计（ESE）范式。该方法通过单次前向传播估算系统均衡态，基于当前状态与均衡态差异生成整体预测。实验表明，ESE在货币汇率及疫情建模中精度媲美SOTA，且具备线性时间复杂度，扩展性更优。其可与常规预测器无缝集成，实现10-70倍加速，兼具高效、鲁棒与可扩展性，适用于经济与健康等多系统协同预测场景。', url: 'https://tldr.takara.ai/p/2606.13285', source: 'huggingface_papers', level: 1, keywords: ["state", "equilibrium", "systems", "forecasts", "scalable"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Modern analog computing for solving differential and matrix equations', summary: '本文针对AI与科学计算的高算力需求，聚焦现代模拟计算在求解微分方程、矩阵方程及矩阵向量乘法中的核心作用。通过对比离散元件、CMOS电路及阻变存储器阵列等硬件实现，指出阻变存储器因高效性而极具潜力。文章综述了利用先进模拟电路和存内计算架构解决上述方程的最新进展，分析了精度、可扩展性及计算复杂度等关键挑战，确立了模拟计算作为下一代前沿计算使能技术的统一视角。', url: 'https://tldr.takara.ai/p/2606.13179', source: 'huggingface_papers', level: 1, keywords: ["analog", "computing", "computational", "memory", "matrix"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Disparate Impact in Synthetic Data Generation', summary: '本文重审合成数据生成（SDG）中的差异影响公平性，指出传统方法因修正偏差导致分布失真，而理想状态应为合成与真实分布一致。研究揭示了近似误差、样本比例及差分隐私机制如何引发组间效用差异。通过实验验证了基于概率图模型的SDG存在的不平等现象，并提出分组学习策略。该方法能有效提升整体数据效用，并显著改善不同敏感群体间的公平性平衡。', url: 'https://tldr.takara.ai/p/2606.13105', source: 'huggingface_papers', level: 1, keywords: ["disparate", "impact", "data", "synthetic", "distribution"], date: '2026-06-11', authors: '', topics: ["AI安全与治理"] },
+  { title: 'The Hidden Power of Scaling Factor in LoRA Optimization', summary: '针对LoRA中缩放因子$\alpha$作用被低估的问题，本文通过实证分析与信号漂移理论框架，揭示$\alpha$是优化主导因素而非学习率的简单补充。研究发现，LoRA的光谱抑制平滑了优化景观，导致常规超参数保守；增大$\alpha$可在不增加漂移比的情况下放大任务信号，加速收敛。最优$\alpha$与秩呈次线性关系（平方根律）。据此提出LoRA-$\alpha$框架，使LoRA兼容标准小学习率，显著提升性能并简化超参搜索。', url: 'https://tldr.takara.ai/p/2606.12883', source: 'huggingface_papers', level: 1, keywords: ["scaling", "lora", "learning", "optimization", "factor"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Interpretable Factor Decomposition for Decision Intelligence in Large-Scale Financial Markets: Evidence from Chinas A-Share Market', summary: '本研究针对A股市场截面收益预测的可解释性问题，提出基于XGBoost与TreeSHAP的机器学习归因框架。通过对2009-2019年3632只股票的回测，模型实现0.547的AUC及显著的正向超额收益，且经Carhart四因子调整后依然稳健。SHAP分解揭示行为因子（换手率、动量）贡献率达58.2%，远超估值因子。消融实验进一步验证了特征替代结构，证实该方法能有效解构并审计各因子对预测的贡献度，为决策智能提供透明依据。', url: 'https://tldr.takara.ai/p/2606.12843', source: 'huggingface_papers', level: 1, keywords: ["factor", "interpretable", "decomposition", "evidence", "share"], date: '2026-06-11', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'CLARITree: Cholesky and Lookahead Accelerations for Regression with Interpretable Piecewise Linear Trees', summary: '针对回归树构建中动态规划等方法计算昂贵、贪心算法性能受限的问题，本文提出CLARITree算法。该方法结合前瞻式搜索策略与高效的秩一Cholesky更新技术，实现了近最优、稀疏的分段线性回归树构建。理论与实验表明，该方法在计算效率、预测精度和稀疏性之间取得了优异平衡，显著优于当前最先进方法，为构建高性能且可解释的回归模型提供了高效解决方案。', url: 'https://tldr.takara.ai/p/2606.12840', source: 'huggingface_papers', level: 1, keywords: ["regression", "trees", "lookahead", "linear", "optimal"], date: '2026-06-11', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Data Formulator 0.7: AI-powered data analytics for enterprise data', summary: '针对企业数据工作流中AI就绪性不足的问题，微软研究院发布Data Formulator 0.7。其核心方法是通过AI代理构建一体化工作空间，支持数据导入、探索、分析及可视化全流程自动化。主要结论表明，该工具显著降低了数据团队处理企业数据的门槛，能高效将原始数据转化为可操作的洞察，提升了数据分析的智能化水平与效率。', url: 'https://www.microsoft.com/en-us/research/blog/data-formulator-0-7-ai-powered-data-analytics-for-enterprise-data/', source: 'microsoft_research', level: 1, keywords: ["data", "enterprise", "formulator", "powered", "analytics"], date: '2026-05-28', authors: 'Chenglong Wang, Scott Tsukamaki, Michel Galley, Jianfeng Gao', topics: ["AI应用生态与工具"] },
+  { title: 'Extending Human Intelligence Through AI', summary: '本文针对AI信任构建难题，提出将AI视为人类智能的延伸而非替代品的研究视角。核心方法在于重构人机协作范式，强调通过增强而非取代人类认知能力来设计系统。主要结论指出，这种定位有助于建立更稳健、可信赖的AI架构，为开发者提供了一条兼顾技术效能与伦理安全的务实路径，从而在复杂场景中实现人机能力的互补与协同优化。', url: 'https://www.microsoft.com/en-us/research/blog/extending-human-intelligence-through-ai/', source: 'microsoft_research', level: 1, keywords: ["human", "extending", "intelligence", "through", "understanding"], date: '2026-05-27', authors: 'Ken Archer, Harald Wiltsche', topics: ["AI安全与治理"] },
+  { title: 'MagenticLite, MagenticBrain, Fara1.5: An agentic experience optimized for small models', summary: '针对小参数模型在复杂代理任务中能力受限的问题，微软研究院提出MagenticLite系统。该方法通过整合专用小模型与高效编排策略，实现浏览器与本地文件系统的跨域单工作流协同。核心在于利用模型分工优化资源调度，而非依赖超大基座模型。实验表明，该架构能显著提升日常任务中的代理执行效率与准确性，为资源受限环境下的轻量化智能体应用提供了可行且高效的解决方案。', url: 'https://www.microsoft.com/en-us/research/blog/magenticlite-magenticbrain-fara1-5-an-agentic-experience-optimized-for-small-models/', source: 'microsoft_research', level: 1, keywords: ["agentic", "models", "magenticlite", "small", "magenticbrain"], date: '2026-05-21', authors: 'Microsoft Research AI Frontiers', topics: ["大模型算法与优化"] },
+  { title: 'Vega: Zero-knowledge proofs for digital identity in the age of AI', summary: '针对AI时代数字身份验证中的隐私泄露风险，本研究提出Vega系统。其核心方法是将完整凭证转化为单一零知识证明，实现最小化数据共享，仅披露必要信息。主要结论表明，Vega在保持高隐私保护的同时具备实时应用性能，有效平衡了身份验证的安全性与可用性，为构建可信的数字身份基础设施提供了高效解决方案。', url: 'https://www.microsoft.com/en-us/research/blog/vega-zero-knowledge-proofs-for-digital-identity-in-the-age-of-ai/', source: 'microsoft_research', level: 1, keywords: ["vega", "zero", "knowledge", "proofs", "digital"], date: '2026-05-21', authors: 'Srinath Setty', topics: ["AI安全与治理"] },
+  { title: 'Adaptive Parallel Reasoning: The Next Paradigm in Efficient Inference Scaling', summary: '针对推理模型因顺序扩展导致的线性延迟与上下文超限问题，本文提出自适应并行推理范式。核心方法在于赋予模型自主决策能力，根据任务特性动态分解独立子任务、确定并发线程数并协调执行。主要结论指出，该机制突破了传统序列推理的效率瓶颈，通过并行化探索替代方案与回溯修正，显著提升了数学、代码及智能体任务中的推理效率与可扩展性，为推理时算力优化提供了新路径。', url: 'http://bair.berkeley.edu/blog/2026/05/08/adaptive-parallel-reasoning/', source: 'bair', level: 1, keywords: ["reasoning", "parallel", "adaptive", "scaling", "models"], date: '2026-05-08', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'AI原生应用爆发：不再是"套壳ChatGPT"', summary: '研究问题：如何界定并实现真正的AI原生应用，区别于早期仅调用大模型接口的“套壳”产品。核心方法：从架构设计源头将AI作为产品核心引擎，而非附加功能，构建如AI原生CRM、设计及编程环境等新范式。主要结论：2026年AI原生应用迎来爆发，标志着行业从功能叠加转向以AI为灵魂的重构，Honey、Canvas等新产品验证了这一范式转变，确立了AI在产品设计中的中心地位。', url: 'https://www.anthropic.com/research/ai-native-apps-2026', source: 'milestone_app', level: 3, keywords: ["AI原生应用", "AI-native", "Honey", "Canvas", "产品设计"], date: '2026-05-01', authors: 'AI Industry', topics: ["AI应用生态与工具"] },
+  { title: 'Gradient-based Planning for World Models at Longer Horizons', summary: '针对大型世界模型在长视距规划中因优化病态、局部极小值及高维视觉输入导致的不稳定问题，本文提出GRASP算法。其核心在于：将轨迹提升为虚拟状态以实现时间并行优化；在状态迭代中直接注入随机性以增强探索；重塑梯度信号，使动作获得清晰反馈并规避高维视觉模型带来的脆弱状态-输入梯度。实验表明，该方法显著提升了基于梯度的规划鲁棒性，使利用通用模拟器进行有效控制和长期规划成为可能。', url: 'http://bair.berkeley.edu/blog/2026/04/20/grasp/', source: 'bair', level: 1, keywords: ["world", "models", "planning", "long", "gradient"], date: '2026-04-20', authors: '', topics: ["大模型算法与优化"] },
+  { title: '多Agent协作成为标配', summary: '研究问题：探索多Agent协作在复杂任务中的生产级应用潜力。核心方法：构建分工明确的协同架构，如搜索、分析与执行模块解耦，实现专业化Agent间的无缝配合。主要结论：至2026年，多Agent协作已从实验阶段演进为工业界标配。以Claude、OpenAI及Google为代表的头部产品验证了该模式的成熟度，标志着AI从单点智能向系统化、流水线式复杂任务处理能力的重大跨越。', url: 'https://www.anthropic.com/research/multi-agent-collaboration', source: 'milestone_app', level: 3, keywords: ["多Agent", "协作", "Multi-Agent", "分工", "生产级"], date: '2026-04-01', authors: 'Anthropic / OpenAI / Google', topics: ["AI Agent与智能体"] },
+  { title: '多模态统一模型：感知智能逼近人类', summary: '针对多模态数据割裂问题，本研究推动文本、图像、音频、视频及3D在单一模型中的无缝融合，旨在实现逼近人类的感知智能。核心方法包括构建统一架构以支持跨模态理解与生成，并引入如World Labs的图生3D工具及LTX 2.3的音视频同步生成技术。主要结论表明，至2026年多模态统一模型将成为行业标配，显著提升AI对复杂物理世界的建模与交互能力，标志着感知智能的重大突破。', url: 'https://www.worldlabs.ai/', source: 'milestone_2026', level: 2, keywords: ["多模态", "统一模型", "感知智能", "3D", "音视频"], date: '2026-04-01', authors: 'World Labs / Lightricks', topics: ["多模态与生成技术"] },
+  { title: 'Identifying Interactions at Scale for LLMs', summary: '针对大模型可解释性在规模化交互分析上的瓶颈，本文聚焦于识别输入特征间的复杂依赖关系。研究指出传统单一归因方法难以捕捉模型行为中涌现的协同效应。核心方法通过规模化分析框架，系统性地检测并量化特征间的高阶交互作用，突破孤立组件分析的局限。主要结论表明，该机制能更精准地揭示LLM决策背后的深层逻辑与模式，为构建更安全、可信且透明的AI系统提供关键技术支持，有效应对模型复杂度带来的挑战。', url: 'http://bair.berkeley.edu/blog/2026/03/13/spex/', source: 'bair', level: 1, keywords: ["scale", "llms", "understanding", "behavior", "complex"], date: '2026-03-13', authors: '', topics: ["AI安全与治理"] },
+  { title: 'Skill / Loop 范式：AI应用的新交互模式', summary: '本文提出“Skill/Loop”新交互范式，旨在解决AI应用从单次生成向持续协作演进的问题。核心方法上，Skill将AI能力封装为轻量级可复用模块，Loop则赋予AI执行中的自我反思与迭代优化能力。主要结论表明，该范式通过模块化封装与闭环反馈机制，显著提升了AI应用的可靠性与自动化水平，标志着人机交互从静态问答向动态协同的根本性转变。', url: 'https://www.anthropic.com/research/skill-loop-paradigm', source: 'milestone_app', level: 3, keywords: ["Skill", "Loop", "范式", "自我迭代", "交互模式", "Honeys"], date: '2026-03-01', authors: 'AI Industry', topics: ["AI Agent与智能体", "AI应用生态与工具"] },
+  { title: 'After Orthogonality: Virtue-Ethical Agency and AI Alignment', summary: '本文针对AI对齐中过度依赖“目标导向”范式的局限，提出基于德性伦理的替代方案。核心观点认为理性行为并非源于既定目标，而是行动与社会实践网络的契合。作者主张AI不应被赋予固定目标，而应通过对齐实践规范来确立代理能力。主要结论指出，这种去目标化的德性伦理框架能更有效地解决对齐难题，为构建具备合理行为准则的智能体提供新的理论路径。', url: 'https://thegradient.pub/virtue-ethics-ai-alignment/', source: 'the_gradient', level: 1, keywords: ["rational", "goals", "actions", "because", "action"], date: '2026-02-18', authors: 'Peli Grietzer', topics: ["AI安全与治理"] },
+  { title: 'Prompt Engineering 2.0：从技巧到工程体系', summary: '本文探讨Prompt Engineering向工程体系的演进。针对传统提示词缺乏标准化的问题，提出构建包含System Prompt设计、模板管理、版本控制及效果评估的标准化流程。依托OpenAI Structured Outputs等API特性，实现提示词管理的工程化与自动化。结论表明，Prompt已从单点技巧升级为系统化工程实践，显著提升了大模型应用的稳定性与可维护性。', url: 'https://platform.openai.com/docs/guides/structured-outputs', source: 'milestone_app', level: 3, keywords: ["Prompt Engineering", "System Prompt", "Structured Outputs", "工程化", "模板"], date: '2026-02-01', authors: 'OpenAI / Anthropic', topics: ["提示工程演进"] },
+  { title: 'AI安全与对齐：从研究到监管', summary: '本文探讨2026年AI安全从学术研究向全球监管的范式转变。研究聚焦于欧盟AI法案、美国新框架及中国管理办法等政策落地背景，分析Constitutional AI、RLHF及红队测试如何演变为行业标配。核心结论指出，随着合规要求强化，AI对齐技术已从实验室方法转化为强制性的工程实践，标志着AI治理进入标准化与制度化并重的新阶段。', url: 'https://www.anthropic.com/research', source: 'milestone_2026', level: 2, keywords: ["AI安全", "对齐", "监管", "欧盟AI法案", "红队测试"], date: '2026-02-01', authors: 'Global Regulators', topics: ["AI安全与治理"] },
+  { title: 'Information-Driven Design of Imaging Systems', summary: '针对传统成像指标（如分辨率、信噪比）难以权衡系统优劣的问题，本文提出一种基于信息论的成像系统设计框架。核心方法是通过仅利用含噪测量值及噪声模型的信息估计器，量化测量区分物体的能力，从而直接评估有用信息含量，而非依赖人类可解释的图像质量。主要结论表明，该方法能客观衡量AI提取信息的效率，为智能手机、MRI及自动驾驶等复杂成像系统的设计与评估提供了统一且有效的理论依据。', url: 'http://bair.berkeley.edu/blog/2026/01/10/information-driven-imaging/', source: 'bair', level: 1, keywords: ["measurements", "information", "systems", "imaging", "noise"], date: '2026-01-10', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Agentic AI 成为主流：从对话到行动', summary: '本文探讨Agentic AI如何从单纯对话转向自主行动，成为2025年行业主流。研究聚焦于AI通过自主规划、工具调用及执行复杂工作流（如代码开发、研报生成），实现从“问答”到“做事”的范式跃迁。核心结论显示，2025年AI能力显著加速，行业贡献了超90%的前沿模型，标志着智能体在解决多步骤任务中的成熟与普及。', url: 'https://hai.stanford.edu/ai-index-report', source: 'milestone_2025', level: 3, keywords: ["Agentic AI", "自主规划", "工具调用", "工作流", "主流"], date: '2025-12-01', authors: 'Stanford HAI', topics: ["AI Agent与智能体"] },
+  { title: 'RL without TD learning', summary: '针对离线强化学习（Off-policy RL）在长视距任务中可扩展性差的难题，本文提出一种基于“分而治之”范式的新型RL算法。该方法摒弃了传统的时间差分（TD）学习机制，通过分解复杂决策过程实现高效求解。核心优势在于突破了TD学习的扩展瓶颈，能够充分利用历史数据及人类演示等非在线策略数据。实验表明，该算法在长视距任务中表现优异，为机器人、医疗等数据收集昂贵场景提供了更具可扩展性的离线RL解决方案。', url: 'http://bair.berkeley.edu/blog/2025/11/01/rl-without-td-learning/', source: 'bair', level: 1, keywords: ["policy", "learning", "data", "algorithm", "problem"], date: '2025-11-01', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'Which Agent Causes Task Failures and When?Researchers from PSU and Duke explores automated failure attribution of LLM Multi-Agent Systems', summary: '针对LLM多智能体系统任务失败归因难题，研究提出自动化故障定位方法。通过解析智能体协作轨迹，精准识别导致任务失败的特定Agent及其失效时机。该方法解决了复杂系统中“活动频繁却失败”的归因盲区，为优化多智能体架构、提升系统鲁棒性提供了可解释的分析工具，助力开发者快速定位瓶颈并改进协同策略。', url: 'https://syncedreview.com/2025/08/14/which-agent-causes-task-failures-and-whenresearchers-from-psu-and-duke-explores-automated-failure-attribution-of-llm-multi-agent-systems/', source: 'synced', level: 1, keywords: ["agent", "systems", "task", "multi", "causes"], date: '2025-08-14', authors: 'Synced', topics: ["AI Agent与智能体"] },
+  { title: 'AI编程工具全面普及：从辅助到替代', summary: '研究聚焦2025年AI编程工具从辅助向自主替代的范式转变。核心方法依托Cursor、Devin等先进Agent架构，在真实代码库中实现端到端编码与Bug修复。主要结论显示，SWE-bench基准得分由30%跃升至近100%，标志着AI已具备独立处理复杂软件工程任务的能力，彻底重塑开发工作流，实现从代码补全到全自动软件工程的跨越。', url: 'https://www.cognition.ai/devin', source: 'milestone_app', level: 3, keywords: ["AI编程", "Devin", "SWE-bench", "Trae", "Windsurf", "Copilot"], date: '2025-08-01', authors: 'Community', topics: ["AI应用生态与工具", "垂直领域应用"] },
+  { title: 'GPT-5 发布：通用智能新高度', summary: '针对大模型在复杂任务中的可靠性与泛化瓶颈，本研究聚焦GPT-5系列的技术突破。核心方法在于通过架构优化实现上下文窗口的显著扩展及幻觉抑制机制的迭代。主要结论显示，该模型在SWE-bench编码基准准确率逼近100%，多模态推理能力跃升，标志着大模型正式迈入“准AGI”阶段，为通用人工智能的工程落地提供了关键范式。', url: 'https://openai.com/', source: 'milestone_2025', level: 3, keywords: ["GPT-5", "OpenAI", "SWE-bench", "准AGI", "多模态"], date: '2025-08-01', authors: 'OpenAI', topics: ["大模型算法与优化"] },
+  { title: 'ByteDance Introduces Astra: A Dual-Model Architecture for Autonomous Robot Navigation', summary: '针对复杂室内环境下的自主机器人导航难题，字节跳动提出Astra架构。该方法采用双模型协同机制，通过解耦任务规划与底层控制，显著提升机器人在动态场景中的适应性与决策效率。实验表明，Astra在长程导航及避障任务中表现优异，有效解决了传统单模型在复杂语义理解与实时响应间的平衡痛点，为具身智能提供了高效且鲁棒的解决方案。', url: 'https://syncedreview.com/2025/06/24/bytedance-introduces-astra-a-dual-model-architecture-for-autonomous-robot-navigation/', source: 'synced', level: 1, keywords: ["bytedance", "introduces", "astra", "dual", "architecture"], date: '2025-06-24', authors: 'Synced', topics: ["大模型算法与优化"] },
+  { title: 'MIT Researchers Unveil SEAL: A New Step Towards Self-Improving AI', summary: 'MIT提出SEAL框架，解决大模型自我优化难题。该方法结合强化学习与权重编辑机制，使LLM能通过自我反馈迭代更新参数，实现“自我改进”。研究证实该路径可行，为构建无需人工干预、具备持续进化能力的自主智能系统提供了新范式，标志着AI从静态模型向动态自演化系统迈出关键一步。', url: 'https://syncedreview.com/2025/06/16/mit-researchers-unveil-seal-a-new-step-towards-self-improving-ai/', source: 'synced', level: 1, keywords: ["seal", "self", "researchers", "unveil", "step"], date: '2025-06-16', authors: 'Synced', topics: ["大模型算法与优化"] },
+  { title: 'Researchers from PSU and Duke introduce Multi-Agent Systems Automated Failure Attribution', summary: '针对多智能体系统（MAS）故障归因难题，宾州州立大学与杜克大学提出自动化故障归因框架。该方法将“识别故障源”转化为可量化、可分析的计算问题，旨在解决复杂系统中责任界定模糊的挑战。研究通过构建自动化机制，实现从现象到责任主体的精准映射，显著提升调试效率。核心结论表明，该方案能有效降低MAS开发维护成本，为复杂分布式系统的可靠性保障提供新范式。', url: 'https://syncedreview.com/2025/06/16/researchers-from-psu-and-duke-introduce-multi-agent-systems-automated-failure-attribution/', source: 'synced', level: 1, keywords: ["multi", "agent", "systems", "automated", "failure"], date: '2025-06-16', authors: 'Synced', topics: ["AI Agent与智能体"] },
+  { title: 'AGI Is Not Multimodal', summary: '本文批判“AGI即多模态”的观点，指出当前生成式AI过度依赖语言模型模拟思维，忽视了支撑智能的隐性具身理解。核心论点在于，仅靠文本或多模态数据无法复现人类基于身体交互的底层认知机制。结论强调，真正的通用人工智能需超越符号处理，整合具身认知与物理世界的互动经验，否则将难以实现具备真正理解力的智能系统。', url: 'https://thegradient.pub/agi-is-not-multimodal/', source: 'the_gradient', level: 1, keywords: ["quot", "models", "multimodal", "projecting", "language"], date: '2025-06-04', authors: 'Benjamin A. Spiegel', topics: ["具身智能与机器人"] },
+  { title: 'Agentic Workflow：AI工作流成为主流', summary: '研究问题：探讨2025年AI工作流从单次调用向多步骤自主执行的演进趋势及其在企业落地中的核心地位。核心方法：分析n8n、Make、Zapier等平台如何集成Agent能力，构建“触发-判断-协作-输出”的闭环自动化流程。主要结论：Agentic Workflow通过支持复杂逻辑与多工具协同，已成为企业实现AI规模化应用的主流形态，标志着自动化进入智能决策新阶段。', url: 'https://n8n.io', source: 'milestone_app', level: 3, keywords: ["Agentic Workflow", "工作流", "自动化", "n8n", "多步骤"], date: '2025-06-01', authors: 'n8n / Community', topics: ["AI Agent与智能体"] },
+  { title: 'Adobe Research Unlocking Long-Term Memory in Video World Models with State-Space Models', summary: '针对视频世界模型中长期记忆缺失的问题，Adobe Research提出结合状态空间模型（SSM）与密集局部注意力的架构。该方法利用SSM高效建模长程依赖，辅以扩散强制和帧局部注意力等训练策略，确保生成内容的连贯性。实验表明，该方案成功突破了长视频生成的记忆瓶颈，实现了高效且一致的视频建模，为构建具备长期上下文理解能力的视频世界模型提供了新范式。', url: 'https://syncedreview.com/2025/05/28/adobe-research-unlocking-long-term-memory-in-video-world-models-with-state-space-models/', source: 'synced', level: 1, keywords: ["long", "models", "adobe", "term", "memory"], date: '2025-05-28', authors: 'Synced', topics: ["大模型算法与优化"] },
+  { title: 'Claude 4 / Opus 4：Agent能力质变', summary: '本研究聚焦大模型向自主智能体（Agent）的演进。核心突破在于构建支持百万级上下文与原生多模态的Claude 4架构，并引入Claude Code CLI工具。实验表明，该模型具备长达30小时以上的长时间自主工作流执行能力，实现了从被动对话助手到可独立执行复杂任务的“数字同事”的范式转变，显著提升了AI在长周期、多步骤任务中的稳定性与实用性。', url: 'https://www.anthropic.com/news/claude-4-family', source: 'milestone_2025', level: 3, keywords: ["Claude 4", "Opus 4", "Agent", "Claude Code", "数字同事"], date: '2025-05-22', authors: 'Anthropic', topics: ["AI Agent与智能体"] },
+  { title: 'Claude Max / 定价重构：AI服务分层', summary: '研究问题：AI服务如何从单一订阅模式转向成熟的商业化分层体系。核心方法：Anthropic推出Claude Max（100/200美元月费），构建涵盖专业级、企业级及消费级的多维产品矩阵，实现价格与服务能力的精准匹配。主要结论：此举标志着AI服务正式进入分层定价阶段，通过差异化供给满足多元场景需求，推动AI商业化生态走向成熟与规范化。', url: 'https://www.anthropic.com/', source: 'milestone_2025', level: 2, keywords: ["Claude Max", "定价", "商业化", "分层", "企业级"], date: '2025-05-01', authors: 'Anthropic', topics: ["垂直领域应用"] },
+  { title: 'Llama 4 发布：多模态开源新标杆', summary: 'Meta发布Llama 4（Scout/Maverick），确立多模态开源新标杆。该模型原生支持多模态且可商用，在多项基准测试中性能逼近顶级闭源模型。其核心贡献在于通过高性能开源方案，持续巩固Meta在开源生态的领导地位，有效降低技术门槛，加速AI技术的民主化进程，为开发者提供极具竞争力的替代选择。', url: 'https://ai.meta.com/blog/llama-4-multimodal-intelligence/', source: 'milestone_2025', level: 3, keywords: ["Llama 4", "Meta", "多模态", "开源", "民主化"], date: '2025-04-05', authors: 'Meta AI', topics: ["AI应用生态与工具"] },
+  { title: 'MCP生态爆发：万物皆可MCP', summary: '研究问题：解决AI与主流工具交互碎片化难题。核心方法：依托MCP协议标准化，推动GitHub、Slack等工具原生接入，构建统一通信基础设施。主要结论：2025年MCP生态爆发，从理论标准跃升为实际底层设施。Claude Desktop等客户端实现原生支持，大幅降低集成成本，使AI对第三方工具的调用体验发生质变，标志着AI Agent交互范式的成熟与普及。', url: 'https://modelcontextprotocol.io', source: 'milestone_app', level: 3, keywords: ["MCP", "生态", "MCP Server", "工具集成", "Claude Desktop"], date: '2025-03-15', authors: 'Anthropic / Community', topics: ["AI应用生态与工具"] },
+  { title: 'xAI Grok-3：实时知识+开源策略', summary: '针对大模型知识滞后与封闭性问题，xAI发布Grok-3。核心方法采用3140亿参数MoE架构并集成X平台实时数据流，同时实施开源策略以增强透明度与可审计性。主要结论表明，该模型在保持高性能的同时，通过实时接入提升了时效性，其开源举措有望加剧开源社区与大厂模型的竞争，推动行业向更开放、可验证的方向发展。', url: 'https://x.ai/', source: 'milestone_2025', level: 2, keywords: ["Grok-3", "xAI", "马斯克", "实时", "开源"], date: '2025-02-17', authors: 'xAI', topics: ["AI应用生态与工具"] },
+  { title: 'DeepSeek-R1：中国开源推理模型震撼全球', summary: 'DeepSeek-R1针对大模型推理能力瓶颈，提出高能效训练范式。其核心在于以约600万美元的极低成本，通过优化训练策略实现与OpenAI o1相当的性能表现。研究证实，在MIT开源协议下，开源模型具备快速追赶甚至匹敌顶尖闭源模型的能力。该成果不仅验证了低成本高效训练的技术可行性，更通过开放共享重塑了AI行业竞争格局，为技术从业者提供了极具性价比的替代方案，推动开源生态向高性能推理领域加速演进。', url: 'https://www.deepseek.com/', source: 'milestone_2025', level: 3, keywords: ["DeepSeek-R1", "中国", "开源", "推理模型", "低成本"], date: '2025-01-20', authors: 'DeepSeek', topics: ["AI应用生态与工具"] },
+  { title: 'MCP协议发布：AI工具互操作标准', summary: '针对AI模型与外部工具连接碎片化问题，Anthropic发布MCP协议，确立AI与数据源交互的标准化接口。该协议通过统一通信规范，实现类似USB接口的即插即用能力，消除异构系统间的集成壁垒。核心结论表明，MCP已成为2025年AI应用生态的关键基础设施，被业界广泛采纳，显著提升了AI工具互操作性及开发效率，为构建开放、兼容的AI应用生态奠定底层标准基础。', url: 'https://www.anthropic.com/news/model-context-protocol', source: 'milestone_app', level: 3, keywords: ["MCP", "Model Context Protocol", "互操作", "标准协议", "Anthropic"], date: '2024-11-25', authors: 'Anthropic', topics: ["AI应用生态与工具"] },
+  { title: 'Shape, Symmetries, and Structure: The Changing Role of Mathematics in Machine Learning Research', summary: '本文探讨机器学习研究中数学角色的演变。针对当前基于严谨数学原理的架构设计仅带来边际收益，而依赖大规模计算与工程优化的方法主导进展这一现象，文章指出研究范式正从“形状、对称性与结构”驱动转向“规模与数据”驱动。核心结论认为，尽管数学指导的理论架构创新放缓，但其在理解模型泛化及构建高效算法中的基础作用依然关键，未来需在工程扩展性与理论深度间寻求新平衡。', url: 'https://thegradient.pub/shape-symmetry-structure/', source: 'the_gradient', level: 1, keywords: ["machine", "learning", "role", "mathematics", "shape"], date: '2024-11-16', authors: 'Henry Kvinge', topics: ["大模型算法与优化"] },
+  { title: 'o1 系列发布：推理能力革命', summary: '针对复杂逻辑推理瓶颈，OpenAI推出o1系列，创新引入深度“思考链”机制。该模型在生成答案前执行内部多步推理，显著增强数学、编程及科学问题解决能力。实验表明，其表现达到国际数学奥林匹克金牌水平，并在SWE-bench基准测试中实现大幅突破。这一进展标志着大模型从模式匹配向深层逻辑推演的范式转变，为高难度认知任务提供了全新解决方案。', url: 'https://openai.com/index/introducing-openai-o1-preview/', source: 'milestone_2024', level: 3, keywords: ["o1", "推理模型", "Chain-of-Thought", "数学", "编程"], date: '2024-09-12', authors: 'OpenAI', topics: ["大模型算法与优化"] },
+  { title: 'Whats Missing From LLM Chatbots: A Sense of Purpose', summary: '本文探讨大语言模型（LLM）聊天机器人能力饱和背景下，基准测试分数提升与用户体验增长的非线性关系。研究指出当前评估体系过度依赖MMLU等静态指标，忽视了用户交互中的深层需求。核心观点认为，现有聊天机器人缺乏“目标感”（Sense of Purpose），即主动引导对话以达成特定意图的能力。结论强调，未来LLM需从被动响应转向具备明确任务导向的主动交互模式，以突破性能瓶颈并真正提升用户满意度。', url: 'https://thegradient.pub/dialog/', source: 'the_gradient', level: 1, keywords: ["these", "more", "whats", "missing", "chatbots"], date: '2024-09-09', authors: 'Kenneth Li', topics: ["大模型算法与优化"] },
+  { title: 'ComfyUI生态成熟：AI工作流可视化编排', summary: '研究问题：如何降低复杂AI生成流程的使用门槛并提升复用性。核心方法：依托ComfyUI构建节点式可视化编排系统，通过模块化设计将图像、视频及3D生成Pipeline直观化，并借助社区开发的数千自定义节点丰富功能生态。主要结论：2024年ComfyUI已成为该领域主流工具，成功推动“AI工作流”概念普及，显著提升了开发效率与流程的可维护性。', url: 'https://comfyui.com', source: 'milestone_app', level: 2, keywords: ["ComfyUI", "工作流", "节点编排", "可视化", "Pipeline"], date: '2024-09-01', authors: 'Community', topics: ["AI应用生态与工具"] },
+  { title: 'We Need Positive Visions for AI Grounded in Wellbeing', summary: '本文针对当前AI发展缺乏以福祉为导向的积极愿景这一问题，批判了仅关注技术冲击的现状。核心主张是构建基于人类福祉（Wellbeing）的AI发展框架，强调技术应服务于人的整体幸福而非单纯效率。结论指出，需从社会伦理与心理层面重新定义AI目标，引导技术向善，确保AI变革能真正提升人类生活质量，为政策制定者和开发者提供价值锚点。', url: 'https://thegradient.pub/we-need-positive-visions-for-ai-grounded-in-wellbeing/', source: 'the_gradient', level: 1, keywords: ["need", "positive", "visions", "grounded", "wellbeing"], date: '2024-08-03', authors: 'Joel Lehman', topics: ["AI安全与治理"] },
+  { title: 'Agent框架井喷：CrewAI / AutoGen / LangGraph', summary: '本文指出2024年AI Agent框架进入爆发期，核心贡献在于推动Agent从概念走向工程化落地。研究聚焦多智能体协作与编排难题，提出CrewAI（基于角色/任务/流程）、微软AutoGen（支持多Agent对话）及LangGraph（基于图的状态机编排）等关键框架。主要结论表明，这些工具显著降低了多Agent协作复杂度，确立了Agent作为2024-2025年最重要AI应用方向的地位，为开发者提供了标准化的工程化解决方案。', url: 'https://www.crewai.com', source: 'milestone_app', level: 3, keywords: ["CrewAI", "AutoGen", "LangGraph", "Agent框架", "多Agent"], date: '2024-07-15', authors: 'Community', topics: ["AI Agent与智能体"] },
+  { title: 'Claude 3.5 Sonnet：编码能力登顶', summary: '本研究聚焦大语言模型在软件工程领域的编码效能瓶颈。Anthropic推出Claude 3.5 Sonnet，通过架构优化显著提升代码生成与理解能力。核心成果体现在SWE-bench基准测试得分从约30%跃升至50%，大幅超越GPT-4o。此外，集成Artifacts功能实现代码实时预览，增强了人机交互体验。该模型确立了新的编码能力标杆，为开发者提供了更高效的AI辅助编程工具，标志着LLM在复杂软件任务中取得实质性突破。', url: 'https://www.anthropic.com/news/claude-3-5-sonnet', source: 'milestone_2024', level: 3, keywords: ["Claude 3.5", "Sonnet", "编码", "SWE-bench", "Artifacts"], date: '2024-06-20', authors: 'Anthropic', topics: ["AI Agent与智能体"] },
+  { title: 'Coze / Dify：低代码AI应用搭建平台', summary: '针对AI应用开发门槛高、依赖专业技术的问题，本文聚焦Coze与Dify等低代码平台。其核心方法是通过拖拽式工作流编排、预置插件市场及一键发布机制，实现Agent与工作流的可视化构建。主要结论表明，这些工具显著降低了技术壁垒，使非技术人员也能高效开发AI应用，标志着AI应用搭建已具备类似传统Web开发的简易性与普及度，推动了AI工程化的民主化进程。', url: 'https://www.coze.com', source: 'milestone_app', level: 3, keywords: ["Coze", "Dify", "低代码", "Agent搭建", "工作流平台"], date: '2024-06-15', authors: 'ByteDance / Dify', topics: ["AI应用生态与工具"] },
+  { title: 'Cursor 爆火：AI原生编程工具元年', summary: '本研究指出2024年标志着AI原生编程工具元年的到来。研究问题聚焦于AI辅助编程范式的根本性变革。核心方法是从传统的单文件代码补全（如Copilot）升级为具备全局上下文感知能力的AI原生IDE（如Cursor）。主要结论表明，AI已能自主编写功能及修复Bug，实现从“建议者”到“执行者”的角色转变，彻底重塑开发工作流与交互模式。', url: 'https://cursor.com', source: 'milestone_app', level: 3, keywords: ["Cursor", "AI编程", "IDE", "代码生成", "Trae"], date: '2024-06-01', authors: 'Anysphere', topics: ["AI应用生态与工具", "垂直领域应用"] },
+  { title: 'Mamba 架构：挑战Transformer的新范式', summary: '针对Transformer在处理长序列时面临的二次计算复杂度瓶颈，本研究提出Mamba架构，即选择性状态空间模型。该方法通过引入数据依赖的选择性机制，实现了线性复杂度的长序列建模。实验表明，Mamba在DNA序列、音频及视频处理等任务中展现出显著优势，有效突破了传统架构的效率限制，具备成为下一代主流基础架构的潜力。', url: 'https://arxiv.org/abs/2312.00752', source: 'milestone_2024', level: 2, keywords: ["Mamba", "状态空间模型", "线性复杂度", "长序列", "架构创新"], date: '2024-06-01', authors: 'Albert Gu, Tri Dao', topics: ["大模型算法与优化"] },
+  { title: 'GPT-4o 发布：全模态原生统一', summary: '本研究针对多模态交互延迟高、架构割裂的问题，提出GPT-4o这一全模态原生统一模型。核心方法在于构建单一架构以同时处理文本、图像、音频及视频的输入与输出，实现真正的端到端融合。主要结论显示，该模型首次达成“一模型通吃所有模态”，将响应延迟降至232毫秒，显著提升了多模态交互的效率与实时性，标志着多模态AI从拼接式向原生统一架构的质的飞跃。', url: 'https://openai.com/index/hello-gpt-4o/', source: 'milestone_2024', level: 3, keywords: ["GPT-4o", "全模态", "Omni", "实时交互", "统一模型"], date: '2024-05-13', authors: 'OpenAI', topics: ["多模态与生成技术"] },
+  { title: 'Llama 3 发布：开源模型新高度', summary: '本研究聚焦于构建高性能开源大语言模型。通过采用15万亿token海量数据训练及128K长上下文窗口技术，Llama 3系列（含8B至405B参数）显著提升了推理能力。实验表明，其在多项基准测试中性能逼近主流闭源模型，验证了大规模预训练与开源策略的有效性。该成果不仅确立了新的技术标杆，更极大丰富了开发者生态，巩固了其作为首选基座模型的地位，推动了行业向开放、高效方向演进。', url: 'https://ai.meta.com/blog/meta-llama-3/', source: 'milestone_2024', level: 3, keywords: ["Llama 3", "Meta", "405B", "开源", "基座模型"], date: '2024-04-18', authors: 'Meta AI', topics: ["AI应用生态与工具"] },
+  { title: 'Devin 发布：首个AI软件工程师', summary: '本研究针对软件开发全流程自动化难题，提出并发布了Devin——首个全自主AI软件工程师。其核心方法在于实现从编码、调试到部署的端到端闭环操作，突破了传统辅助工具的局限。主要结论显示，Devin在SWE-bench基准测试中取得约13.8%的成绩，验证了AI Agent在复杂软件工程任务中的可行性与落地潜力，标志着AI从代码生成向独立执行任务的范式转变。', url: 'https://www.cognition.ai/', source: 'milestone_2024', level: 2, keywords: ["Devin", "AI工程师", "Agent", "编码", "自主"], date: '2024-03-12', authors: 'Cognition AI', topics: ["AI Agent与智能体"] },
+  { title: 'Claude 3 家族：GPT-4超竞争者', summary: '研究问题：验证Anthropic新模型在复杂任务中是否具备超越GPT-4的竞争力。核心方法：发布Claude 3家族（Haiku/Sonnet/Opus），重点优化复杂推理、代码生成及长文本理解能力。主要结论：基准测试显示其性能宣称超越GPT-4，尤其在专业场景下表现卓越，确立其作为技术从业者首选模型的地位，标志着大模型竞争进入新阶段。', url: 'https://www.anthropic.com/news/claude-3-family', source: 'milestone_2024', level: 3, keywords: ["Claude 3", "Anthropic", "Opus", "Sonnet", "Haiku"], date: '2024-03-04', authors: 'Anthropic', topics: ["大模型算法与优化"] },
+  { title: 'Gemma 开源：Google 加入开源战局', summary: 'Google发布基于Gemini技术的Gemma开源模型（2B/7B参数），支持商用。此举标志着Google正式入局开源大模型赛道，与Meta Llama、Mistral形成三足鼎立之势。该发布不仅丰富了开源生态供给，更通过引入顶级技术底座，加速了高性能小模型的普及与应用落地，推动行业向更加开放、多元的方向发展。', url: 'https://blog.google/technology/ai/google-gemma-open-models/', source: 'milestone_2024', level: 2, keywords: ["Gemma", "Google", "开源", "Gemma技术", "商用"], date: '2024-02-21', authors: 'Google', topics: ["AI应用生态与工具"] },
+  { title: 'Sora 发布：AI视频生成震撼世界', summary: 'Sora 解决了高保真、长时长视频生成的难题。其核心在于将文本转化为具备物理一致性与多角色交互的60秒连贯视频，突破了静态图像生成的局限。主要结论表明，该技术实现了电影级画质与复杂场景模拟，标志着AI正式迈入动态视频创作新阶段，为内容生产范式带来颠覆性变革。', url: 'https://openai.com/sora', source: 'milestone_2024', level: 3, keywords: ["Sora", "视频生成", "OpenAI", "物理模拟", "电影级"], date: '2024-02-15', authors: 'OpenAI', topics: ["多模态与生成技术"] },
+  { title: 'Mixtral 8x7B：MoE架构开源先锋', summary: '本研究针对大模型训练与推理的高算力成本问题，提出基于稀疏混合专家（MoE）架构的 Mixtral 8x7B 模型。该方法在推理阶段仅激活两个专家网络（约13B参数），显著降低计算开销。实验表明，该模型性能媲美参数量更大的 Llama 2 70B，验证了 MoE 架构在平衡模型性能与推理效率方面的有效性，为开源大模型的高效优化提供了重要范式。', url: 'https://mistral.ai/news/mixtral-of-experts/', source: 'milestone_2023', level: 2, keywords: ["Mixtral", "MoE", "混合专家", "开源", "效率"], date: '2023-12-11', authors: 'Mistral AI', topics: ["大模型算法与优化"] },
+  { title: 'Gemini 1.0 发布：Google 原生多模态反击', summary: 'Google 发布 Gemini 1.0，旨在解决多模态统一处理难题。其核心贡献在于原生支持文本、图像、音频及视频的全模态融合，并具备 100 万+ token 的超长上下文窗口能力。作为 Google DeepMind 合并后的首款旗舰模型，该架构实现了跨模态的高效交互与理解。主要结论显示，Gemini 1.0 标志着 Google 正式跻身大模型第一梯队，确立了其在原生多模态技术路线上的领先地位，为复杂场景下的多源信息处理提供了统一解决方案。', url: 'https://deepmind.google/technologies/gemini/', source: 'milestone_2023', level: 3, keywords: ["Gemini", "Google", "DeepMind", "原生多模态", "百万上下文"], date: '2023-12-06', authors: 'Google DeepMind', topics: ["多模态与生成技术"] },
+  { title: 'GPT-4 Turbo / GPTs 发布：AI应用商店时代', summary: '针对大模型向个性化应用演进的痛点，OpenAI发布GPT-4 Turbo及GPT Store。核心创新在于推出GPTs功能，允许用户通过零代码方式定制专属AI助手，并依托GPT Store构建应用生态。主要结论显示，大模型正从通用工具转型为可插拔的个性化应用平台，标志着“AI应用商店”时代的开启，极大降低了AI应用开发门槛并拓展了长尾场景。', url: 'https://openai.com/blog/new-models-and-developer-products-announced-at-devday', source: 'milestone_2023', level: 3, keywords: ["GPT-4 Turbo", "GPTs", "DevDay", "128K上下文", "应用商店"], date: '2023-11-06', authors: 'OpenAI', topics: ["垂直领域应用"] },
+  { title: 'Mistral 7B：小模型大能力', summary: '研究问题：探索如何通过架构优化弥补参数规模差距，实现小模型的高性能。核心方法：Mistral AI 设计高效架构，发布仅70亿参数的 Mistral 7B 模型。主要结论：该模型性能媲美 Llama 2 13B，证实高效架构可显著缩小参数劣势，推动“小模型革命”，为端侧部署及低成本 AI 应用提供可行路径。', url: 'https://mistral.ai/news/announcing-mistral-7b/', source: 'milestone_2023', level: 2, keywords: ["Mistral", "7B", "小模型", "高效架构", "端侧AI"], date: '2023-09-27', authors: 'Mistral AI', topics: ["大模型算法与优化"] },
+  { title: 'Llama 2 开源：开源大模型生态爆发', summary: '研究问题：如何打破闭源壁垒，推动AI应用普及。核心方法：Meta发布Llama 2（8B/70B参数），实现完全开源且可商用，支持本地部署。主要结论：此举显著降低AI应用门槛，激发开源社区活力，标志着开源生态在性能与可用性上开始追赶闭源模型，引发大模型生态爆发式增长，加速了人工智能技术的民主化进程。', url: 'https://ai.meta.com/llama/', source: 'milestone_2023', level: 3, keywords: ["Llama 2", "Meta", "开源", "本地部署", "生态"], date: '2023-07-18', authors: 'Meta AI', topics: ["AI应用生态与工具"] },
+  { title: 'Claude 2 发布：长文本与安全对齐', summary: '本研究聚焦大模型长文本处理与安全对齐难题。核心方法为引入100K token上下文窗口及Constitutional AI机制，强化指令遵循与安全性。主要结论显示，Claude 2在编码、数学及复杂推理任务中表现卓越，有效平衡了长上下文理解能力与安全约束，确立其作为GPT-4强劲竞争者的地位，验证了宪法AI在提升模型可靠性方面的有效性。', url: 'https://www.anthropic.com/news/claude-2', source: 'milestone_2023', level: 2, keywords: ["Claude 2", "Anthropic", "长文本", "Constitutional AI", "安全对齐"], date: '2023-07-11', authors: 'Anthropic', topics: ["AI安全与治理"] },
+  { title: 'RAG（检索增强生成）成为主流架构', summary: '针对企业级LLM应用缺乏私有知识支撑的问题，本文指出RAG已成为主流标准范式。核心方法是将向量数据库（如Pinecone、Milvus）与大语言模型结合，并依托LlamaIndex等专用框架，构建“知识库+LLM”架构。主要结论表明，该方案能实现基于私有数据的精准问答，显著提升了企业AI落地的可行性与准确性，确立了其作为首选解决方案的地位。', url: 'https://arxiv.org/abs/2005.11401', source: 'milestone_app', level: 3, keywords: ["RAG", "检索增强", "向量数据库", "LlamaIndex", "知识库"], date: '2023-06-15', authors: 'Meta AI / Community', topics: ["大模型算法与优化"] },
+  { title: '百模大战：国产大模型集体登场', summary: '本文聚焦2023年国产大模型密集发布的行业现象。研究问题在于解析“百模大战”背后的技术演进与商业逻辑。核心方法通过梳理百度、阿里、字节等头部厂商的动向，剖析其针对中文场景及本土生态的适配策略。主要结论指出，中国AI产业已全面进入多模型竞争阶段，这种集中爆发不仅加速了技术迭代，更推动了大模型从研发向商业化落地的实质性跨越，重塑了本土AI生态格局。', url: 'https://www.baidu.com/ernie-bot', source: 'milestone_2023', level: 3, keywords: ["百模大战", "文心一言", "通义千问", "豆包", "国产大模型"], date: '2023-06-01', authors: '中国AI厂商', topics: ["AI应用生态与工具"] },
+  { title: 'HuggingGPT：工具调用（Tool Use）的先驱', summary: 'HuggingGPT解决了大语言模型（LLM）处理多模态任务的局限性。其核心方法是将LLM作为调度器，通过解析用户意图并调用HuggingFace上的数千个专用模型，实现复杂任务的协同执行。主要结论是，该架构成功验证了LLM作为任务规划中枢的可行性，确立了“LLM+工具”范式，为后续GPT-4等模型原生支持Function Calling及Agent框架的发展奠定了理论基础。', url: 'https://arxiv.org/abs/2303.17580', source: 'milestone_app', level: 3, keywords: ["HuggingGPT", "Tool Use", "Function Calling", "工具调用", "多模型"], date: '2023-04-01', authors: 'Microsoft', topics: ["AI Agent与智能体"] },
+  { title: 'AutoGPT：自主AI Agent的雏形', summary: '研究问题：探索AI Agent自主规划与执行多步骤任务的能力边界。核心方法：基于大语言模型构建具备自我反思、工具调用及长期记忆功能的自主智能体原型，实现从目标拆解到行动执行的闭环。主要结论：虽在实际复杂场景中表现有限，但成功验证了自主Agent的技术可行性，极大推动了该概念从学术走向大众，并催生了BabyAGI等大量衍生项目，确立了AI Agent作为下一代交互范式的雏形地位。', url: 'https://github.com/Significant-Gravitas/AutoGPT', source: 'milestone_app', level: 3, keywords: ["AutoGPT", "Agent", "自主规划", "GitHub爆火"], date: '2023-03-30', authors: 'Significant Gravitas', topics: ["AI Agent与智能体"] },
+  { title: 'GPT-4 发布：多模态大模型新标杆', summary: 'GPT-4旨在突破单模态限制，确立多模态大模型新标杆。其核心方法在于引入文本与图像混合输入能力，推测采用1.8万亿参数的Mixture of Experts (MoE)架构以优化计算效率。主要结论显示，该模型在推理、逻辑及专业领域（如美国律师资格考试前10%）实现质的飞跃，显著提升了复杂任务处理能力，标志着多模态融合成为下一代大模型的关键演进方向。', url: 'https://openai.com/research/gpt-4', source: 'milestone_2023', level: 3, keywords: ["GPT-4", "多模态", "OpenAI", "MoE", "推理能力"], date: '2023-03-14', authors: 'OpenAI', topics: ["多模态与生成技术"] },
+  { title: 'LangChain 爆发：大模型应用开发框架', summary: '针对大模型应用开发从“直接调API”向“框架驱动”演进的问题，本文指出LangChain通过提供Chain、Agent、Memory及Tool等核心抽象层，显著降低了开发门槛。其核心贡献在于构建了标准化的应用构建范式，并催生了以LlamaIndex、CrewAI为代表的庞大插件生态。主要结论表明，LangChain确立了当前LLM应用开发的主流标准，标志着该领域正式进入模块化、生态化的框架驱动新阶段。', url: 'https://www.langchain.com', source: 'milestone_app', level: 3, keywords: ["LangChain", "框架", "Chain", "Agent", "LLM应用"], date: '2023-03-01', authors: 'LangChain', topics: ["AI应用生态与工具"] },
+  { title: 'ChatGPT 发布：AI 大众化元年开启', summary: '研究问题：如何推动AI从专业研究工具向大众消费级应用转型。核心方法：OpenAI发布基于GPT-3.5架构并引入RLHF（人类反馈强化学习）对齐技术的ChatGPT，显著提升交互自然度与安全性。主要结论：该产品在两个月内突破1亿月活，创下史上最快增长记录，标志着生成式AI正式进入大众化时代，重塑了人机交互范式。', url: 'https://openai.com/blog/chatgpt', source: 'milestone_2022', level: 3, keywords: ["ChatGPT", "GPT-3.5", "RLHF", "大众化", "生成式AI"], date: '2022-11-30', authors: 'OpenAI', topics: ["垂直领域应用"] },
+  { title: 'Midjourney V4 发布：AI 绘画质量飞跃', summary: '针对AI图像生成在细节表现与风格控制上的瓶颈，本文聚焦Midjourney V4版本的迭代突破。核心方法在于通过模型架构优化，显著提升生成图像的画质、纹理细节及风格可控性，并维持极简的对话式交互体验。主要结论显示，V4实现了质量的跨越式升级，凭借卓越效果迅速在设计及艺术领域获得广泛认可，进一步巩固了其作为AI绘画头部工具的市场地位。', url: 'https://midjourney.com', source: 'milestone_2022', level: 2, keywords: ["Midjourney", "AI绘画", "V4", "设计", "艺术"], date: '2022-11-16', authors: 'Midjourney', topics: ["多模态与生成技术"] },
+  { title: 'Stable Diffusion + ComfyUI：AI创作工具化起步', summary: '针对AI绘画落地难的问题，本文探讨了以Stable Diffusion为核心、ComfyUI为代表的可视化工具生态构建。通过提供图形化界面，降低了技术门槛，使非专业用户也能便捷操作。核心结论指出，这一转变标志着AI应用从底层API调用迈向成熟工具化的关键一步，推动了生成式AI在大众创作领域的普及与工程化实践。', url: 'https://github.com/comfyanonymous/ComfyUI', source: 'milestone_app', level: 2, keywords: ["ComfyUI", "Stable Diffusion", "AI绘画", "工具化"], date: '2022-10-15', authors: 'Community', topics: ["AI应用生态与工具"] },
+  { title: 'Whisper 开源：语音识别民主化', summary: '本研究致力于解决语音识别（ASR）在多语言场景下的泛化与精度瓶颈。通过开源基于68万小时多语言数据训练的Whisper模型，实现了99种语言的高精度识别，其错误率逼近人类水平。核心结论表明，大规模多语言数据训练能显著提升ASR性能，该开源模型降低了技术门槛，为多模态交互及语音助手的发展奠定了坚实基础，推动了语音识别技术的民主化进程。', url: 'https://openai.com/research/whisper', source: 'milestone_2022', level: 2, keywords: ["Whisper", "语音识别", "开源", "多语言", "ASR"], date: '2022-09-21', authors: 'OpenAI', topics: ["AI应用生态与工具"] },
+  { title: 'Stable Diffusion 开源：AIGC 民主化', summary: '本研究聚焦于降低AI绘画门槛，解决高算力依赖问题。核心方法是开源Stable Diffusion模型，通过优化架构实现消费级显卡高效推理。主要结论表明，该举措打破了付费订阅壁垒，推动AIGC技术民主化与全民普及，极大激发了开源社区活力，并为后续多模态生成技术的发展奠定了坚实基础。', url: 'https://stability.ai', source: 'milestone_2022', level: 3, keywords: ["Stable Diffusion", "AIGC", "开源", "图像生成", "民主化"], date: '2022-08-22', authors: 'Stability AI', topics: ["AI应用生态与工具"] },
+  { title: 'DALL-E 2 发布：文本到图像质的飞跃', summary: '研究问题：突破早期文本生成图像在质量、分辨率及语义对齐上的瓶颈。核心方法：通过多模态生成架构，显著提升图像生成能力。主要结论：DALL-E 2 实现了图像生成质量的质的飞跃，其高分辨率与精准的语义对齐能力，标志着多模态生成技术正式萌芽，并推动 AI 绘画进入专业创作者视野。', url: 'https://openai.com/dall-e-2', source: 'milestone_2022', level: 2, keywords: ["DALL-E", "OpenAI", "图像生成", "多模态", "创作者"], date: '2022-04-06', authors: 'OpenAI', topics: ["多模态与生成技术"] },
+  { title: 'Prompt Engineering 概念诞生', summary: '针对大语言模型（如GPT-3）输出可控性不足的问题，本文界定了“提示工程”这一新兴领域。核心方法是通过设计零样本及少样本提示词，优化模型输入结构。主要结论表明，精心构造的提示能显著提升模型输出质量与准确性，标志着从单纯调用API向精细化输入调控的技术范式转变，确立了提示工程在LLM应用开发中的基础地位。', url: 'https://learnprompting.org/docs/intro', source: 'milestone_app', level: 3, keywords: ["Prompt Engineering", "零样本", "少样本", "提示词"], date: '2022-03-15', authors: 'AI Community', topics: ["提示工程演进"] },
+  { title: 'Chain-of-Thought Prompting：让模型学会思考', summary: '研究问题：探索如何激发大语言模型的复杂推理能力。核心方法：引入思维链（Chain-of-Thought）提示技术，通过在输入中插入“让我们一步步思考”等引导语，促使模型生成中间推理步骤而非直接输出答案。主要结论：该方法显著提升了模型在数学计算与逻辑推理任务上的表现，证明了显式推理路径对增强模型认知能力的关键作用，并为后续o1、DeepSeek-R1等推理模型奠定了理论基础。', url: 'https://arxiv.org/abs/2201.11903', source: 'milestone_app', level: 3, keywords: ["Chain-of-Thought", "CoT", "思维链", "推理"], date: '2022-01-28', authors: 'Google Brain', topics: ["提示工程演进"] },
+  { title: 'GitHub Trending: patchy631ai-engineering-hub', summary: '该资源库聚焦大语言模型（LLM）、检索增强生成（RAG）及真实场景AI智能体应用。其核心贡献在于提供深度教程，系统梳理从基础模型原理到复杂智能体构建的工程实践路径。主要结论表明，通过结构化的技术解析与实战案例，能有效降低AI应用开发门槛，帮助技术从业者掌握将前沿AI理论转化为可落地解决方案的关键技能，填补了理论学习与工业界落地之间的实践鸿沟。', url: 'https://github.com/patchy631/ai-engineering-hub', source: 'github_trending', level: 1, keywords: ["github", "trending", "engineering", "stars", "depth"], date: '2026-06-17', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'GitHub Trending: LAION-AIOpen-Assistant', summary: '针对开放域对话助手在任务理解、第三方交互及动态信息检索方面的能力瓶颈，本研究提出LAION-AIOpen-Assistant。该方法通过构建基于聊天的智能体架构，实现了对复杂任务的精准理解，并支持无缝对接第三方系统与实时动态信息检索。核心结论表明，该模型显著提升了助手在多模态、多系统环境下的自主执行能力与上下文适应性，为构建具备实际工作流整合能力的通用AI助手提供了有效范式。', url: 'https://github.com/LAION-AI/Open-Assistant', source: 'github_trending', level: 1, keywords: ["assistant", "github", "trending", "laion", "aiopen"], date: '2026-06-17', authors: '', topics: ["AI Agent与智能体"] },
+  { title: 'GitHub Trending: google-researchgoogle-research', summary: '该仓库聚焦Google Research前沿成果，涵盖多模态学习、大模型优化及高效推理等核心领域。研究旨在解决复杂场景下的泛化能力与计算效率瓶颈，提出新型架构与训练范式。主要结论显示，通过引入自监督预训练与稀疏激活机制，显著提升了模型在视觉、语言任务中的性能，同时降低资源消耗。为开发者提供可复现的基线代码与工具链，推动AI技术在工业界的高效落地与持续迭代。', url: 'https://github.com/google-research/google-research', source: 'github_trending', level: 1, keywords: ["google", "github", "trending", "researchgoogle", "stars"], date: '2026-06-17', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'GitHub Trending: photoprismphotoprism', summary: '针对去中心化网络中照片管理分散且缺乏智能的问题，本文介绍PhotoPrism。其核心方法是将AI驱动的照片组织与去中心化Web架构相结合，利用本地化机器学习模型实现自动分类、人脸识别及语义搜索，确保数据隐私与用户主权。主要结论表明，该方案在保障数据自主可控的前提下，显著提升了海量非结构化图像的管理效率与检索精度，为构建去中心化数字资产生态系统提供了可行的技术范式。', url: 'https://github.com/photoprism/photoprism', source: 'github_trending', level: 1, keywords: ["github", "trending", "photoprismphotoprism", "stars", "powered"], date: '2026-06-17', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'GitHub Trending: asgeirtjsystem_prompts_leaks', summary: '该仓库聚焦于大型语言模型系统提示词（System Prompts）的安全泄露与逆向工程问题。通过从Anthropic、OpenAI、Google及xAI等主流厂商的模型中提取内部指令，揭示了模型底层逻辑与安全边界。其核心贡献在于系统性整理并公开了包括Claude、GPT及Gemini系列在内的关键系统提示词，为技术从业者提供了分析模型行为机制、评估隐私风险及优化提示工程的重要参考数据。', url: 'https://github.com/asgeirtj/system_prompts_leaks', source: 'github_trending', level: 1, keywords: ["claude", "code", "github", "trending", "stars"], date: '2026-06-17', authors: '', topics: ["提示工程演进"] },
+  { title: 'GitHub Trending: microsoftAI-For-Beginners', summary: '针对AI教育普及难题，该开源项目提供了一套面向初学者的系统化课程体系。核心方法为“12周24课”结构，涵盖机器学习、深度学习及AI伦理等基础模块，强调低门槛与实战结合。主要结论显示，该资源有效降低了AI学习曲线，通过结构化教学显著提升了大众对AI技术的理解与应用能力，成为社区内极具影响力的入门级教育标杆。', url: 'https://github.com/microsoft/AI-For-Beginners', source: 'github_trending', level: 1, keywords: ["github", "trending", "microsoftai", "beginners", "stars"], date: '2026-06-17', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'GitHub Trending: OpenBB-financeOpenBB', summary: '针对金融分析、量化及AI代理对统一数据平台的需求，本研究介绍了OpenBB。其核心方法是构建开放且可扩展的金融数据基础设施，整合多源数据并提供标准化接口。主要结论表明，该平台有效降低了金融数据获取门槛，提升了分析师与算法模型的效率，成为连接传统金融数据与现代AI应用的关键工具，显著推动了金融领域的数字化与智能化进程。', url: 'https://github.com/OpenBB-finance/OpenBB', source: 'github_trending', level: 1, keywords: ["github", "trending", "openbb", "financeopenbb", "stars"], date: '2026-06-17', authors: '', topics: ["垂直领域应用"] },
+  { title: 'GitHub Trending: netdatanetdata', summary: '针对资源受限团队难以实现全栈可观测性的痛点，NetData提出了一种极速部署的AI驱动解决方案。其核心方法在于提供轻量级、开箱即用的监控架构，结合自动化AI分析能力，无需复杂配置即可覆盖全栈数据。主要结论显示，该技术显著降低了实施门槛，使小型团队也能快速获得企业级的可观测性洞察，实现了效率与成本的优化平衡。', url: 'https://github.com/netdata/netdata', source: 'github_trending', level: 1, keywords: ["github", "trending", "netdatanetdata", "stars", "fastest"], date: '2026-06-17', authors: '', topics: ["AI应用生态与工具"] },
+  { title: 'GitHub Trending: rasbtLLMs-from-scratch', summary: '本文旨在解决大语言模型（LLM）黑盒化导致理解困难的问题，通过从零开始在PyTorch中逐步实现类ChatGPT模型，提供透明化的构建路径。核心方法涵盖数据预处理、Transformer架构搭建、自注意力机制及梯度下降训练等关键步骤。主要结论表明，该教程不仅验证了LLM底层原理的可复现性，更为技术从业者提供了深入掌握模型内部机制与工程实现的权威实践指南，有效弥合了理论与应用间的认知鸿沟。', url: 'https://github.com/rasbt/LLMs-from-scratch', source: 'github_trending', level: 1, keywords: ["scratch", "step", "github", "trending", "rasbtllms"], date: '2026-06-17', authors: '', topics: ["大模型算法与优化"] },
+  { title: 'GitHub Trending: fprompts.chat', summary: '针对大模型提示词（Prompt）工程缺乏标准化社区与隐私顾虑的问题，该项目构建了一个开源、可自托管的提示词共享平台。其核心方法是通过社区协作机制，实现提示词的收集、发现与管理，并支持组织级私有化部署以保障数据安全。主要结论表明，该平台有效促进了高质量提示词的流通与复用，为技术团队提供了低成本、高隐私的提示词资产沉淀方案，显著提升了LLM应用开发的效率与规范性。', url: 'https://github.com/f/prompts.chat', source: 'github_trending', level: 1, keywords: ["prompts", "github", "trending", "fprompts", "chat"], date: '2026-06-17', authors: '', topics: ["提示工程演进"] },
+];
+const TOPICS = [
+  { name: 'AI Agent与智能体', description: '多Agent架构、CrewAI等框架及自动化工作流，实现复杂任务协同。', keywords: ["多Agent", "CrewAI", "AutoGen", "工作流"], totalCount: 22, yearCounts: {"2026": 12, "2025": 5, "2024": 3, "2023": 2, "2022": 0} },
+  { name: '提示工程演进', description: '从Prompt Engineering到结构化输出，优化模型输入与推理能力。', keywords: ["Prompt", "思维链", "结构化输出", "System Prompt"], totalCount: 5, yearCounts: {"2026": 3, "2025": 0, "2024": 0, "2023": 0, "2022": 2} },
+  { name: '具身智能与机器人', description: '聚焦物理AI、机器人数据采集、具身认知及多模态交互，强调身体与环境的互动。', keywords: ["具身智能", "机器人", "数据采集", "多模态"], totalCount: 9, yearCounts: {"2026": 8, "2025": 1, "2024": 0, "2023": 0, "2022": 0} },
+  { name: '大模型算法与优化', description: '研究LLM及扩散模型的底层算法改进，包括推理加速、参数优化及数学理论基础。', keywords: ["LLM", "推理加速", "LoRA", "扩散模型"], totalCount: 39, yearCounts: {"2026": 26, "2025": 5, "2024": 5, "2023": 3, "2022": 0} },
+  { name: 'AI应用生态与工具', description: '涵盖AI在金融、医疗、安全等领域的具体应用，以及企业级工具、芯片和框架的开发。', keywords: ["应用落地", "芯片", "企业工具", "垂直领域"], totalCount: 33, yearCounts: {"2026": 16, "2025": 5, "2024": 6, "2023": 3, "2022": 3} },
+  { name: '多模态与生成技术', description: '涉及多模态大模型量化、知识解耦、视觉语言模型评估及跨模态融合。', keywords: ["多模态", "量化", "知识解耦", "视觉语言"], totalCount: 10, yearCounts: {"2026": 4, "2025": 0, "2024": 2, "2023": 2, "2022": 2} },
+  { name: 'AI安全与治理', description: '关注模型对齐、合规监管及伦理安全，确保技术发展符合社会规范。', keywords: ["安全", "对齐", "监管", "合规"], totalCount: 17, yearCounts: {"2026": 15, "2025": 0, "2024": 1, "2023": 1, "2022": 0} },
+  { name: '垂直领域应用', description: '聚焦法律检索、软件工程、视频生成等具体场景的深度应用与效能提升。', keywords: ["应用", "代码", "法律", "视频"], totalCount: 23, yearCounts: {"2026": 18, "2025": 2, "2024": 1, "2023": 1, "2022": 1} },
+];
+const CONCEPTS = [
+  { name: 'AI数字员工', one_liner: '就像雇了一个不用休息、能自己找工具干活的超级实习生。', description: '以前的AI像个大喇叭，你问它答，它是个被动的知识宝库；现在的AI Agent像个主动的“数字员工”。它不仅能听懂指令，还能自己拆解任务、查找资料、写代码甚至操作软件。比如，你让它做个调研报告，它不会只给你几段文字，而是会自己去网上搜集最新数据，整理成表格，最后写成一篇完整的文章给你。它像是一个不知疲倦的助手，能独立处理从计划到执行的整个闭环，哪怕任务很复杂，它也能一步步搞定，真正从“陪你聊天”变成了“帮你干活”。', scenarios: '你可以让它自动整理杂乱的文件并生成周报；让它监控股票或新闻，发现特定信号时自动截图保存；或者让它帮你写一段复杂的代码并直接运行测试。简单说，凡是涉及多步骤、需要联网查资料或操作软件的工作，都能交给它代劳，你只需做最后的审核者。', evolution: {}, related_topics: ['AI Agent与智能体'], status: 'active' },
+  { name: '调教AI话术', one_liner: '就像给新来的实习生写详细操作手册，让他干活不跑偏。', description: '想象你雇了一个读过所有书但没常识的超级实习生。起初，你只扔给他一句模糊的指令，他可能给你一堆废话。后来你发现，如果你明确告诉他“你是谁”、“你要做什么”、“注意别踩什么坑”，甚至手把手演示一遍解题过程，他的表现就会好得多。这就是“调教AI话术”的进化史：从最初靠运气碰对的随口一问，发展到现在建立一套标准化的“说明书库”。大家把好用的提问模板存起来分享，防止内部机密泄露，还专门研究怎么让AI像人一样一步步推导逻辑。这不再是简单的聊天技巧，而变成了一门严谨的管理艺术，确保每个AI员工都能稳定、安全地输出高质量成果。', scenarios: '你可以用它来快速生成符合公司品牌调性的营销文案；编写能让AI自动检查代码漏洞的详细指令集；或者建立家庭智能音箱的专属问答知识库，让老人孩子问问题时得到准确且安全的回答，避免AI胡言乱语。', evolution: {}, related_topics: ['提示工程演进'], status: 'active' },
+  { name: '有身体的AI', one_liner: '就像给只会读书的学霸装上一双能干活的手和一双能看路的眼睛。', description: '以前的AI像住在图书馆里的书呆子，只懂文字和图片，却不知道怎么搬动桌子。具身智能就是让这些“书呆子”拥有了真实的身体。它不再只是坐在屏幕前回答你的问题，而是能像人一样走进厨房，看着碗筷，思考怎么洗才不会碎，然后伸出手去执行动作。为了让它变聪明，研究人员正拼命收集海量的“第一视角”视频，就像教小孩通过观察大人做事来学习一样，让AI从这些视频里模仿出正确的动作。同时，它还得学会理解周围的世界，比如知道哪里是路、哪里是墙，并在移动中不断修正方向。这不仅仅是软件升级，更是让AI真正融入物理世界，拥有常识和动手能力。', scenarios: '你能让它帮你整理杂乱的房间，精准地把袜子叠好；在仓库里自主搬运重物，避开行人；或者在危险环境下代替人类进行搜救作业。无论是家庭保姆还是工业工人，它都能通过“看”和“做”的配合，完成需要手眼协调的复杂体力活。', evolution: {}, related_topics: ['具身智能与机器人'], status: 'active' },
+  { name: '聪明的小脑瓜', one_liner: '就像给大脑升级，让它用更少的力气想出更聪明的办法。', description: '想象你有一个学生，以前他必须死记硬背整本百科全书才能回答问题，既慢又累。现在，我们教他几种新技能：一是‘精简笔记’，只记重点，像Mistral那样用少量参数发挥大作用；二是‘分工合作’，遇到难题时，不是所有脑细胞都动，而是只激活最擅长的那几个部分，像Mixtral那样省力气；三是‘先想后答’，像o1那样，在开口前先在心里打个草稿，推导一遍逻辑，这样答案更靠谱；四是‘超长记忆’，像GPT-5那样，能记住很久的对话细节而不遗忘。这些方法合在一起，就是让AI这个‘学生’变得更灵巧、更省力、更聪明，不再是一味地堆砌知识，而是懂得如何高效思考。', scenarios: '你可以用它来做那些费脑子的事：比如让它在手机上快速运行，不用连网就能帮你写代码或改Bug；或者让它处理超长文档，一眼找出关键证据；还能用于需要极高准确率的领域，如医疗诊断辅助或法律条文分析，确保它给出的建议是经过深思熟虑而非随口胡诌的。', evolution: {}, related_topics: ['大模型算法与优化'], status: 'active' },
+  { name: 'AI工具箱', one_liner: '就像把专业的电影特效团队变成了手机里的免费APP。', description: '想象一下，以前只有好莱坞大制片厂才用得起的顶级特效技术和翻译团队，现在突然变成了任何人都能免费使用的手机APP。这就是“AI工具箱”带来的变化。过去，想画画得买昂贵的专业软件，想写文章得依赖收费的高级会员，想听懂外语得找昂贵的翻译专家，而且这些数据和技术都被大公司锁在保险柜里。但现在，像Stable Diffusion画画、Whisper翻译、Llama聊天这些强大的工具都开源了。这意味着，任何拥有普通电脑的人，都能在自己的设备上运行这些“超级大脑”。它不再是少数人的特权，而是变成了像水电煤一样随处可见的基础设施。开发者们可以像搭积木一样，把这些现成的强大能力组合起来，快速创造出各种新奇的应用，让普通人也能轻松享受到AI带来的便利。', scenarios: '你可以用它来：1. 在自家电脑上免费生成独一无二的插画或视频素材；2. 把长达几小时的会议录音自动转成文字并总结重点；3. 让本地电脑像一个私人助手一样，帮你写代码、整理资料或进行复杂的逻辑推理，无需联网也能保护隐私；4. 快速开发一款能听懂多种语言或识别特定物体的小程序。', evolution: {}, related_topics: ['AI应用生态与工具'], status: 'active' },
+  { name: 'AI安全护栏', one_liner: '就像给调皮的孩子装上隐形围栏，让他自由玩耍但绝不闯祸。', description: '想象一下，现在的AI就像一个天赋极高但还没长大的天才少年。他读过很多书，反应也快，但他不懂礼貌，也没经历过社会的毒打，有时候会信口开河，甚至被坏人教唆去干坏事。AI安全与治理，就是给这位“天才少年”请来的家庭教师和行为矫正师。这不是简单的监控，而是通过制定一套像“家规”一样的宪法，教他分辨是非；或者在后台悄悄观察他的想法，一旦发现苗头不对，就轻轻拉他一把，把他带回正途。比如，当有人试图让他写坏人的代码时，这些机制会让他拒绝回答，或者生成一段无害的代码。这就好比在游乐园里，虽然孩子可以尽情玩滑梯（发挥AI能力），但周围必须有软垫和保护网（安全措施），确保无论怎么折腾，都不会摔伤别人或自己。', scenarios: '你可以用它来确保公司内部的AI助手不会泄露客户隐私，也不会生成带有歧视性的言论；家长可以用它来过滤儿童教育软件中可能出现的暴力或成人内容，保护孩子身心健康；开发者可以利用它快速检测并修复算法中潜藏的偏见，避免在招聘或贷款审核等场景中不公平地对待特定群体，让技术真正造福每个人。', evolution: {}, related_topics: ['AI安全与治理'], status: 'active' },
+  { name: '专用AI助手', one_liner: '就像给万能钥匙配了个特定锁孔的芯，只干特定行的活儿。', description: '想象一下，普通的AI就像一个什么都会一点但都不精的“通才管家”，他能陪你聊天、写邮件，但在处理极度专业的任务时，往往显得不够靠谱。而“专用AI助手”则是这个管家的“专家分身”。比如，法律界的助手只懂法条和案例，医疗界的助手只盯着病历和指标。它们不是靠死记硬背所有知识，而是通过专门的学习和训练，成为了某个领域的“老师傅”。这就好比你想修车，找通才管家可能只会帮你叫拖车，但找专门的“汽车医生”助手，他能直接告诉你哪个零件坏了、怎么修最省钱。这种助手不再试图讨好所有人，而是深耕某一个行业，把那个行业的规矩、经验和细节摸得透透的，从而提供更精准、更靠谱的帮助。', scenarios: '你可以用它来快速起草符合最新法规的合同条款，而不是让通用AI瞎编；它可以分析你的体检报告，指出异常指标并给出通俗易懂的健康建议，而不是只给一堆医学术语；或者让它帮你筛选特定的法律判例，找出与你案件最相似的过往判决，节省大量查阅时间。简而言之，凡是涉及专业门槛高、容错率低的工作，都适合交给它。', evolution: {}, related_topics: ['垂直领域应用'], status: 'active' },
+  { name: '全能创作助手', one_liner: '就像给大脑装了超能翻译机，能看懂听懂的万事万物，还能随手变出画和视频。', description: '以前的AI像个只会死记硬背的图书管理员，只认识文字。现在的“全能创作助手”则像一位拥有五感的超级艺术家。它不再只是处理干巴巴的文字，而是能同时看懂图片、听懂声音、理解视频，甚至构建3D模型。比如你给它一张猫的照片和一段“开心”的描述，它能立刻写出一首关于这只猫的诗歌；或者你只需说一句“生成一段下雨的街道视频”，它就能画出连贯且真实的画面。这种能力让它从单一的“打字员”进化成了能看、能听、能说的“全科医生”，把不同感官的信息揉在一起，创造出以前人类需要很久才能完成的内容，让创作变得像说话一样简单自然。', scenarios: '你可以用它一键把草图变成精美的插画，让老照片里的亲人“开口说话”或动起来；快速剪辑短视频时，直接告诉它“剪掉尴尬停顿，配上欢快的音乐”；或者在头脑风暴时，描述一个产品创意，它瞬间生成宣传海报和演示视频，帮你省去大量设计时间。', evolution: {}, related_topics: ['多模态与生成技术'], status: 'active' },
+];
+const YEARS = ['2026', '2025', '2024', '2023', '2022'];
+
+// ===== WEEKLY BRIEFING DATA =====
+// Will be filled by update script; for now generated from KNOWLEDGE_BASE
+const WEEKLY_BRIEFING = [
+  {
+    "title": "AI不再只是插件，而是产品大脑",
+    "explanation": "【这是什么】就像汽车从“带收音机的车”变成“自动驾驶汽车”，AI不再是外挂功能，而是产品的核心驱动力。\n【跟你有什么关系】未来你用的软件会更聪明、更懂你，工作学习效率大幅提升，体验将发生根本性改变。",
+    "concepts": [],
+    "date": "2026-05-01",
+    "source_url": "",
+    "source": "milestone_app"
+  },
+  {
+    "title": "AI团队分工干活成常态",
+    "explanation": "【这是什么】像公司部门一样，AI拆分成查资料、做分析、干活的专人，配合默契完成复杂任务。\n【跟你有什么关系】以后AI能帮你搞定更麻烦的事，效率更高，不再是只会答简单问题的工具。",
+    "concepts": [],
+    "date": "2026-04-01",
+    "source_url": "",
+    "source": "milestone_app"
+  },
+  {
+    "title": "AI终于能像人一样看懂世界",
+    "explanation": "【这是什么】就像人眼耳口鼻协同工作，AI现在能同时看懂图、听懂声、理解视频，不再各干各的。\n【跟你有什么关系】以后跟AI聊天更自然，它能直接看懂你的照片或视频并生成内容，办事效率更高。",
+    "concepts": [],
+    "date": "2026-04-01",
+    "source_url": "",
+    "source": "milestone_2026"
+  },
+  {
+    "title": "写指令变系统工程更稳了",
+    "explanation": "【这是什么】像工厂流水线一样规范地写指令，不再靠运气，而是有标准步骤和检查机制。\n【跟你有什么关系】让电脑干活更靠谱、不出错，你用的软件会更稳定，体验更好。",
+    "concepts": [],
+    "date": "2026-02-01",
+    "source_url": "",
+    "source": "milestone_app"
+  },
+  {
+    "title": "AI管严了：以后更听话更安全",
+    "explanation": "【这是什么】就像给调皮孩子立规矩，各国出台法律，强制AI必须遵守安全标准，不再只是科学家在实验室里随便试试。\n【跟你有什么关系】你用的AI软件会更靠谱、不胡言乱语，隐私和权益更有保障，不用担心被AI误导或泄露信息。",
+    "concepts": [],
+    "date": "2026-02-01",
+    "source_url": "",
+    "source": "milestone_2026"
+  }
+];  // Auto-generated: 2026-W25
+
+// ===== STATE =====
+let currentView = 'briefing';
+let currentExploreView = 'matrix';
+let selectedTopic = null;
+
+// ===== VIEW SWITCH (3 tabs) =====
+function switchView(view, btn) {
+  currentView = view;
+  // Update tab buttons
+  document.querySelectorAll('#tab-nav button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Show/hide views
+  document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+  const targetView = document.getElementById('view-' + view);
+  if (targetView) targetView.classList.add('active');
+  // Render content
+  if (view === 'briefing') {
+    renderWeeklyBriefing();
+  } else if (view === 'concepts') {
+    renderConceptDictionary();
+  } else if (view === 'explore') {
+    if (currentExploreView === 'timeline') {
+      renderTimeline();
+    } else {
+      renderMatrix();
+    }
+  }
+}
+
+// ===== EXPLORE SUB-VIEW SWITCH =====
+function switchExploreView(view, btn) {
+  currentExploreView = view;
+  document.querySelectorAll('#explore-toggle button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (view === 'timeline') {
+    renderTimeline();
+  } else {
+    renderMatrix();
+  }
+}
+
+// ===== RENDER WEEKLY BRIEFING =====
+function renderWeeklyBriefing() {
+  const grid = document.getElementById('briefing-grid');
+  const dateRangeEl = document.getElementById('briefing-date-range');
+
+  // Use WEEKLY_BRIEFING if populated, otherwise generate from KNOWLEDGE_BASE
+  let briefingItems = [];
+  if (WEEKLY_BRIEFING.length > 0) {
+    briefingItems = WEEKLY_BRIEFING;
+  } else {
+    // Auto-generate from latest articles in KNOWLEDGE_BASE
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Find the latest date range in the data
+    const allDates = KNOWLEDGE_BASE
+      .map(a => a.date || a.published_at || '')
+      .filter(d => d.length > 0)
+      .sort()
+      .reverse();
+
+    if (allDates.length === 0) {
+      grid.innerHTML = '<div style="padding: 60px; text-align: center; color: var(--muted);"><div style="font-size: 48px; margin-bottom: 16px;">&#128218;</div><div style="font-size: 16px; margin-bottom: 8px;">暂无简报数据</div><div style="font-size: 13px;">请运行 update_dashboard.py 生成数据</div></div>';
+      return;
+    }
+
+    const latestDate = allDates[0];
+    // Get all articles from the most recent date batch
+    const latestArticles = KNOWLEDGE_BASE.filter(a => (a.date || a.published_at || '') === latestDate);
+
+    // Pick top articles for briefing (prioritize milestone/level 3, then unique topics)
+    const seenTopics = new Set();
+    const selected = [];
+
+    // First pass: milestones (level >= 2)
+    for (const a of latestArticles) {
+      if (selected.length >= 8) break;
+      const topics = a.topics || [];
+      const hasNewTopic = topics.some(t => !seenTopics.has(t));
+      if (a.level >= 2 || hasNewTopic) {
+        selected.push(a);
+        topics.forEach(t => seenTopics.add(t));
+      }
+    }
+    // Second pass: fill remaining with unique articles
+    for (const a of latestArticles) {
+      if (selected.length >= 8) break;
+      if (!selected.includes(a)) {
+        selected.push(a);
+      }
+    }
+
+    // Generate human-readable briefing
+    const topicConceptMap = {};
+    CONCEPTS.forEach(c => {
+      if (c.related_topics) {
+        c.related_topics.forEach(t => {
+          topicConceptMap[t] = c.name;
+        });
+      }
+    });
+
+    briefingItems = selected.slice(0, 8).map(a => {
+      const summary = a.chinese_summary || a.summary || '';
+      const topics = a.topics || [];
+      const concepts = topics.map(t => topicConceptMap[t] || t).filter((v, i, arr) => arr.indexOf(v) === i);
+
+      // Generate a human-friendly title
+      let title = a.title;
+      // If title is English and has Chinese summary, use a condensed version
+      if (summary.length > 0) {
+        const firstSentence = summary.split(/[。！？]/)[0];
+        if (firstSentence.length > 5 && firstSentence.length < 60) {
+          title = firstSentence + '。';
+        }
+      }
+
+      // Generate explanation (what is it, why it matters, how to use)
+      let explanation = '';
+      if (summary.length > 0) {
+        // Extract key info
+        const sentences = summary.split(/[。！？]/).filter(s => s.trim().length > 0);
+        if (sentences.length >= 2) {
+          explanation = '【这是什么】' + sentences[0] + '。\n【跟你有什么关系】' + sentences[1] + '。';
+        } else {
+          explanation = summary.substring(0, 150);
+        }
+      } else {
+        explanation = a.title;
+      }
+
+      return {
+        title: title,
+        explanation: explanation,
+        concepts: concepts,
+        date: a.date || a.published_at || '',
+        source_url: a.url || '',
+        source: a.source || ''
+      };
+    });
+
+    // Set date range
+    const earliest = latestArticles.length > 0
+      ? latestArticles[latestArticles.length - 1].date || latestArticles[latestArticles.length - 1].published_at || latestDate
+      : latestDate;
+    dateRangeEl.textContent = latestDate + (earliest !== latestDate ? ' ~ ' + earliest : '');
+  }
+
+  // Render cards
+  if (briefingItems.length === 0) {
+    grid.innerHTML = '<div style="padding: 60px; text-align: center; color: var(--muted);"><div style="font-size: 48px; margin-bottom: 16px;">&#128218;</div><div style="font-size: 16px; margin-bottom: 8px;">暂无简报数据</div><div style="font-size: 13px;">请运行 update_dashboard.py 生成数据</div></div>';
+    return;
+  }
+
+  grid.innerHTML = briefingItems.map((item, idx) => {
+    const conceptTags = (item.concepts || []).map(c =>
+      `<span class="briefing-concept-tag" onclick="event.stopPropagation(); switchView('concepts', document.querySelectorAll('#tab-nav button')[1]); setTimeout(() => expandConceptCard('${c.replace(/'/g, "\\'")}'), 300);">${c}</span>`
+    ).join('');
+
+    const sourceLabel = item.source || '';
+    const dateLabel = item.date || '';
+
+    return `
+      <div class="briefing-card">
+        <div class="briefing-title">${item.title}</div>
+        <div class="briefing-explanation">${item.explanation}</div>
+        ${conceptTags ? '<div class="briefing-concept-tags">' + conceptTags + '</div>' : ''}
+        <div class="briefing-meta">
+          <span>${dateLabel} ${sourceLabel ? '· ' + sourceLabel : ''}</span>
+          ${item.source_url ? `<a href="${item.source_url}" target="_blank" onclick="event.stopPropagation()">阅读原文 &rarr;</a>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== RENDER CONCEPT DICTIONARY =====
+function renderConceptDictionary() {
+  const grid = document.getElementById('concept-dict-grid');
+
+  if (CONCEPTS.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--muted);">暂无概念数据</div>';
+    return;
+  }
+
+  grid.innerHTML = CONCEPTS.map(c => {
+    const statusLabel = c.status === 'active' ? '活跃' : c.status === 'absorbed' ? '被吸收' : '归档';
+    const statusClass = 'concept-status-' + (c.status || 'active');
+
+    let detailHtml = '';
+    if (c.description) {
+      detailHtml += `<div class="cd-section"><div class="cd-section-title">详细说明</div><div>${c.description}</div></div>`;
+    }
+    if (c.scenarios && c.scenarios.length > 0) {
+      detailHtml += `<div class="cd-section"><div class="cd-section-title">适用场景</div><ul class="cd-scenarios">${c.scenarios.map(s => '<li>' + s + '</li>').join('')}</ul></div>`;
+    }
+    if (c.evolution) {
+      const evo = c.evolution;
+      const hasPre = evo.predecessor && evo.predecessor.trim() !== '';
+      const hasSuc = evo.successor && evo.successor.trim() !== '';
+      if (hasPre || hasSuc) {
+        detailHtml += '<div class="cd-section"><div class="cd-section-title">演进关系</div><div class="concept-evolution">';
+        if (hasPre) detailHtml += `<span class="evo-node">${evo.predecessor}</span><span class="evo-arrow">&#8594;</span>`;
+        detailHtml += `<span class="evo-node current">${c.name}</span>`;
+        if (hasSuc) detailHtml += `<span class="evo-arrow">&#8594;</span><span class="evo-node">${evo.successor}</span>`;
+        detailHtml += '</div></div>';
+      }
+    }
+
+    return `
+      <div class="concept-dict-card" id="cd-${c.name.replace(/[^a-zA-Z\u4e00-\u9fff]/g, '_')}" onclick="toggleConceptDictCard(this)">
+        <div class="cd-name">
+          ${c.name}
+          <span class="concept-status ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="concept-dict-one-liner">${c.one_liner || ''}</div>
+        <div class="cd-expand">展开详情</div>
+        <div class="concept-dict-detail">${detailHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleConceptDictCard(card) {
+  card.classList.toggle('expanded');
+  const expandEl = card.querySelector('.cd-expand');
+  if (card.classList.contains('expanded')) {
+    expandEl.textContent = '收起详情';
+  } else {
+    expandEl.textContent = '展开详情';
+  }
+}
+
+function expandConceptCard(conceptName) {
+  const cards = document.querySelectorAll('.concept-dict-card');
+  cards.forEach(card => {
+    const nameEl = card.querySelector('.cd-name');
+    if (nameEl && nameEl.textContent.includes(conceptName)) {
+      card.classList.add('expanded');
+      const expandEl = card.querySelector('.cd-expand');
+      if (expandEl) expandEl.textContent = '收起详情';
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+}
+
+// ===== RENDER MATRIX =====
+function renderMatrix() {
+  const grid = document.getElementById('matrix-grid');
+
+  // Header row
+  let html = '<div class="matrix-header-row">';
+  html += '<div class="matrix-corner">主题 \ 年份</div>';
+  YEARS.forEach(y => {
+    html += `<div class="matrix-header-cell">${y}</div>`;
+  });
+  html += '</div>';
+
+  // Topic rows
+  TOPICS.forEach(topic => {
+    html += '<div class="matrix-row">';
+    html += `<div class="matrix-row-label">${topic.name}</div>`;
+
+    YEARS.forEach(year => {
+      const count = topic.yearCounts?.[year] || 0;
+      const intensity = count === 0 ? 'empty' : count >= 10 ? 'c5' : count >= 7 ? 'c4' : count >= 4 ? 'c3' : count >= 2 ? 'c2' : 'c1';
+
+      if (count === 0) {
+        html += `<div class="matrix-cell empty"><div class="count">-</div></div>`;
+      } else {
+        html += `<div class="matrix-cell ${intensity}" onclick="showTopicDetail('${topic.name}', '${year}')">`;
+        html += `<div class="count">${count}</div>`;
+        html += `<div class="year-label">${year}</div>`;
+        html += '</div>';
+      }
+    });
+
+    html += '</div>';
+  });
+
+  grid.innerHTML = html;
+}
+
+// ===== RENDER TOPIC LIST =====
+function renderTopicList() {
+  const list = document.getElementById('topic-list');
+  list.innerHTML = TOPICS.map(t => `
+    <li class="topic-item ${selectedTopic === t.name ? 'active' : ''}" onclick="selectTopic('${t.name}')">
+      <span class="name">${t.name}</span>
+      <span class="count">${t.totalCount || 0}</span>
+    </li>
+  `).join('');
+}
+
+// ===== SHOW TOPIC DETAIL =====
+function showTopicDetail(topicName, year) {
+  const topic = TOPICS.find(t => t.name === topicName);
+  if (!topic) return;
+
+  const articles = KNOWLEDGE_BASE.filter(a => {
+    const articleYear = (a.published_at || a.date || '').substring(0, 4);
+    return a.topics?.includes(topicName) && articleYear === year;
+  });
+
+  document.getElementById('detail-title').textContent = topicName;
+  document.getElementById('detail-desc').textContent = topic.description || 'AI前沿研究主题';
+  document.getElementById('detail-count').textContent = `${articles.length} 篇论文`;
+  document.getElementById('detail-range').textContent = `${year}年`;
+
+  document.getElementById('detail-concept').innerHTML = `
+    <p><strong>${topicName}</strong>是${year}年AI领域的重要研究方向。</p>
+    <p>该主题涉及${articles.length}篇相关论文，涵盖${topic.keywords?.join('、') || '多个子方向'}。</p>
+    <p>核心贡献包括：${articles.slice(0, 3).map(a => a.chinese_summary || a.summary?.substring(0, 60) || a.title).join('；').substring(0, 200)}...</p>
+  `;
+
+  const timelineHtml = articles.slice(0, 8).map(a => {
+    const date = (a.published_at || a.date || '').substring(5, 10);
+    return `
+      <li class="timeline-item">
+        <div class="timeline-date">${date}</div>
+        <div class="timeline-content">
+          <div class="event">${a.title}</div>
+          <div class="desc">${(a.chinese_summary || a.summary || '').substring(0, 80)}...</div>
+        </div>
+      </li>
+    `;
+  }).join('');
+  document.getElementById('detail-timeline').innerHTML = timelineHtml || '<li class="timeline-item"><div class="timeline-content">暂无数据</div></li>';
+
+  const articlesHtml = articles.map(a => `
+    <li class="article-item" onclick="window.open('${a.url}', '_blank')">
+      <div class="article-item-title">
+        <span>${a.title}</span>
+        <span class="relevance">${a.relevance || 90}%</span>
+      </div>
+      <div class="article-item-summary">${(a.chinese_summary || a.summary || '暂无摘要').substring(0, 120)}...</div>
+      <div class="article-item-meta">
+        <span>${a.source || '未知来源'}</span>
+        <span>${a.published_at || a.date || ''}</span>
+        <a href="${a.url}" target="_blank" onclick="event.stopPropagation()">阅读原文 &rarr;</a>
+      </div>
+    </li>
+  `).join('');
+  document.getElementById('detail-articles').innerHTML = articlesHtml || '<li class="article-item">暂无论文</li>';
+
+  const relatedConcepts = CONCEPTS.filter(c => c.related_topics?.includes(topicName));
+  const relatedSection = document.getElementById('section-related-concepts');
+  const conceptDetailSection = document.getElementById('section-concept-detail');
+
+  document.getElementById('section-topic-concept').style.display = '';
+  document.getElementById('detail-timeline').parentElement.style.display = '';
+  document.getElementById('detail-articles').parentElement.style.display = '';
+
+  if (relatedConcepts.length > 0) {
+    relatedSection.style.display = '';
+    conceptDetailSection.style.display = 'none';
+    document.getElementById('detail-related-concepts').innerHTML = relatedConcepts.map(c => `
+      <div class="concept-summary-card" onclick="showConceptDetail('${c.name.replace(/'/g, "\\'")}')">
+        <div class="cs-name">${c.name} <span class="concept-status concept-status-${c.status || 'active'}">${c.status === 'active' ? '活跃' : c.status === 'absorbed' ? '被吸收' : '归档'}</span></div>
+        <div class="cs-liner">${c.one_liner || ''}</div>
+        <div class="cs-desc">${(c.description || '').substring(0, 100)}${(c.description || '').length > 100 ? '...' : ''}</div>
+      </div>
+    `).join('');
+  } else {
+    relatedSection.style.display = 'none';
+    conceptDetailSection.style.display = 'none';
+  }
+
+  document.getElementById('overlay').style.display = 'block';
+  document.getElementById('detail-panel').style.display = 'block';
+  selectedTopic = topicName;
+  renderTopicList();
+}
+
+function closeDetail() {
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('detail-panel').style.display = 'none';
+  selectedTopic = null;
+  renderTopicList();
+}
+
+// ===== CONCEPT FUNCTIONS =====
+function toggleConceptList() {
+  const list = document.getElementById('concept-list');
+  const arrow = document.getElementById('concept-arrow');
+  list.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function renderConceptList() {
+  const list = document.getElementById('concept-list');
+  const activeConcepts = CONCEPTS.filter(c => c.status === 'active');
+  if (activeConcepts.length === 0) {
+    list.innerHTML = '<li style="padding: 10px 12px; font-size: 12px; color: var(--muted);">暂无概念词条</li>';
+    return;
+  }
+  list.innerHTML = activeConcepts.map(c => `
+    <li class="concept-item" onclick="showConceptDetailFromSidebar('${c.name.replace(/'/g, "\\'")}')">
+      <span class="name">${c.name}</span>
+      <span class="concept-one-liner">${c.one_liner || ''}</span>
+    </li>
+  `).join('');
+}
+
+function showConceptDetailFromSidebar(conceptName) {
+  showConceptDetail(conceptName);
+}
+
+function showConceptDetail(conceptName) {
+  const concept = CONCEPTS.find(c => c.name === conceptName);
+  if (!concept) return;
+
+  const statusLabel = concept.status === 'active' ? '活跃' : concept.status === 'absorbed' ? '被吸收' : '归档';
+  document.getElementById('detail-title').textContent = concept.name;
+  document.getElementById('detail-desc').textContent = concept.one_liner || '';
+  document.getElementById('detail-count').textContent = statusLabel;
+  document.getElementById('detail-range').textContent = '';
+
+  document.getElementById('section-topic-concept').style.display = 'none';
+  document.getElementById('section-related-concepts').style.display = 'none';
+  document.getElementById('section-concept-detail').style.display = '';
+
+  let html = '';
+  html += `<span class="concept-status concept-status-${concept.status || 'active'}">${statusLabel}</span>`;
+
+  if (concept.one_liner) {
+    html += `<div class="concept-detail-liner">${concept.one_liner}</div>`;
+  }
+
+  if (concept.description) {
+    html += `<div class="concept-detail-desc">${concept.description}</div>`;
+  }
+
+  if (concept.scenarios && concept.scenarios.length > 0) {
+    html += '<div class="detail-section-title" style="margin-top:16px;">适用场景</div>';
+    html += '<ul class="concept-detail-scenarios">';
+    concept.scenarios.forEach(s => {
+      html += `<li>- ${s}</li>`;
+    });
+    html += '</ul>';
+  }
+
+  if (concept.evolution) {
+    const evo = concept.evolution;
+    const hasPredecessor = evo.predecessor && evo.predecessor.trim() !== '';
+    const hasSuccessor = evo.successor && evo.successor.trim() !== '';
+    if (hasPredecessor || hasSuccessor) {
+      html += '<div class="detail-section-title" style="margin-top:16px;">演进关系</div>';
+      html += '<div class="concept-evolution">';
+      if (hasPredecessor) {
+        html += `<span class="evo-node">${evo.predecessor}</span>`;
+        html += '<span class="evo-arrow">&#8594;</span>';
+      }
+      html += `<span class="evo-node current">${concept.name}</span>`;
+      if (hasSuccessor) {
+        html += '<span class="evo-arrow">&#8594;</span>';
+        html += `<span class="evo-node">${evo.successor}</span>`;
+      }
+      html += '</div>';
+    }
+  }
+
+  if (concept.related_topics && concept.related_topics.length > 0) {
+    html += '<div class="detail-section-title" style="margin-top:16px;">关联主题</div>';
+    html += '<div class="concept-related-topics">';
+    concept.related_topics.forEach(t => {
+      html += `<span class="topic-tag" onclick="closeDetail(); setTimeout(() => selectTopic('${t.replace(/'/g, "\\'")}'), 300);">${t}</span>`;
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('detail-concept-full').innerHTML = html;
+
+  document.getElementById('detail-timeline').parentElement.style.display = 'none';
+  document.getElementById('detail-articles').parentElement.style.display = 'none';
+
+  document.getElementById('overlay').style.display = 'block';
+  document.getElementById('detail-panel').style.display = 'block';
+}
+
+function selectTopic(name) {
+  showTopicDetail(name, YEARS.find(y => {
+    const t = TOPICS.find(t => t.name === name);
+    return t && t.yearCounts && t.yearCounts[y] > 0;
+  }) || '2024');
+}
+
+// ===== TIMELINE VIEW =====
+function renderTimeline() {
+  const grid = document.getElementById('matrix-grid');
+  let html = '<div style="padding: 24px;">';
+
+  YEARS.forEach(year => {
+    const yearArticles = KNOWLEDGE_BASE.filter(a => (a.published_at || a.date || '').startsWith(year));
+    html += `<h3 style="color: var(--accent); margin: 20px 0 12px; font-size: 18px;">${year}年</h3>`;
+    html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">';
+
+    yearArticles.slice(0, 12).forEach(a => {
+      html += `
+        <div class="article-item" onclick="window.open('${a.url}', '_blank')" style="cursor: pointer;">
+          <div class="article-item-title">${a.title}</div>
+          <div class="article-item-summary">${(a.chinese_summary || a.summary || '').substring(0, 100)}...</div>
+          <div class="article-item-meta">
+            <span>${a.source || '未知'}</span>
+            <a href="${a.url}" target="_blank" onclick="event.stopPropagation()">阅读原文 &rarr;</a>
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+  grid.innerHTML = html;
+}
+
+// ===== SEARCH =====
+function doSearch() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if (!q) {
+    // Return to current view
+    switchView(currentView, document.querySelector('#tab-nav button.active'));
+    return;
+  }
+
+  // Switch to explore view to show search results
+  switchView('explore', document.querySelectorAll('#tab-nav button')[2]);
+
+  const grid = document.getElementById('matrix-grid');
+  let html = '<div style="padding: 24px;">';
+  html += `<h3 style="color: var(--accent); margin-bottom: 16px;">搜索结果: "${q}"</h3>`;
+  html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 12px;">';
+
+  const results = KNOWLEDGE_BASE.filter(a =>
+    (a.title || '').toLowerCase().includes(q) ||
+    (a.chinese_summary || '').toLowerCase().includes(q) ||
+    (a.summary || '').toLowerCase().includes(q)
+  );
+
+  results.forEach(a => {
+    html += `
+      <div class="article-item" onclick="window.open('${a.url}', '_blank')" style="cursor: pointer;">
+        <div class="article-item-title">${a.title}</div>
+        <div class="article-item-summary">${(a.chinese_summary || a.summary || '').substring(0, 120)}...</div>
+        <div class="article-item-meta">
+          <span>${a.source || '未知'}</span>
+          <span>${a.published_at || a.date || ''}</span>
+          <a href="${a.url}" target="_blank" onclick="event.stopPropagation()">阅读原文 &rarr;</a>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div></div>';
+  grid.innerHTML = html;
+}
+
+// ===== LOAD DATA =====
+async function loadData() {
+  if (KNOWLEDGE_BASE.length === 0) {
+    document.getElementById('briefing-grid').innerHTML = `
+      <div style="padding: 60px; text-align: center; color: var(--muted);">
+        <div style="font-size: 48px; margin-bottom: 16px;">&#128218;</div>
+        <div style="font-size: 16px; margin-bottom: 8px;">知识库暂无数据</div>
+        <div style="font-size: 13px;">请运行 update_dashboard.py 生成数据</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Update stats
+  document.getElementById('stat-total').textContent = KNOWLEDGE_BASE.length;
+  document.getElementById('stat-topics').textContent = TOPICS.length;
+
+  renderTopicList();
+  renderConceptList();
+
+  // Default: render weekly briefing
+  renderWeeklyBriefing();
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', loadData);
+
+document.getElementById('search-input')?.addEventListener('keypress', e => {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
+
+</body>
+</html>
